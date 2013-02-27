@@ -811,6 +811,10 @@ class Parser():
             data = self.data_image[str(0x008)][str(0x008)]
         except(IndexError):
             return []
+        # TODO: Check if set image type to empty is the right way of handling
+        # the cases where there is not this tag.
+        except KeyError:
+            return []
 
         if (data):
             try:
@@ -1262,7 +1266,7 @@ class Parser():
             
             try:
                 # Returns a unicode decoded in the own dicom encoding
-                return name.decode(encoding)
+                return name.decode(encoding, 'replace')
             except(UnicodeEncodeError):
                 return name
 
@@ -1284,7 +1288,7 @@ class Parser():
         if (data):
             encoding = self.GetEncoding()
             # Returns a unicode decoded in the own dicom encoding
-            return data.decode(encoding)
+            return data.decode(encoding, 'replace')
         return ""
 
 
@@ -1489,7 +1493,7 @@ class Parser():
                 if isinstance(data, unicode):
                     return data
                 encoding = self.GetEncoding()
-                return data.decode(encoding)
+                return data.decode(encoding, 'replace')
         except(KeyError):
             return ""
 
