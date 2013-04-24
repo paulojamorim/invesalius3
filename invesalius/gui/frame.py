@@ -336,6 +336,8 @@ class Frame(wx.Frame):
             self.ShowOpenProject()
         elif id == const.ID_ANALYZE_IMPORT:
             self.ShowAnalyzeImporter()
+        elif id == const.ID_MISC_IMAGES_IMPORT:
+            print "IMPORT MISC IMAGES"
         elif id == const.ID_PROJECT_SAVE:
             session = ses.Session()
             if session.temp_item:
