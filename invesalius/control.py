@@ -133,7 +133,6 @@ class Controller():
             dialog.ImportEmptyDirectory(dirpath)
         elif dirpath:
             self.StartImportPanel(dirpath)
-            Publisher.sendMessage("Load data to import panel", dirpath)
 
     def ShowDialogOpenProject(self):
         # Offer to save current project if necessary
