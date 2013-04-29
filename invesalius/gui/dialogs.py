@@ -259,7 +259,15 @@ def ShowOpenAnalyzeDialog():
     return filepath
 
 
-def ShowImportDirDialog():
+def ShowImportDirDialog(import_type):
+
+    import constants as const
+
+    if (import_type == const.IMPORT_TYPE_DICOM):
+        message = _("Choose a DICOM folder:")
+    elif (import_type == const.IMPORT_TYPE_MISC):
+        message = _("Choose a folder with JPG, PNG or TIFF files:")
+   
     current_dir = os.path.abspath(".")
 
     if (sys.platform == 'win32') or (sys.platform == 'linux2'):
@@ -272,7 +280,7 @@ def ShowImportDirDialog():
     else:
         folder = ''
 
-    dlg = wx.DirDialog(None, _("Choose a DICOM folder:"), folder,
+    dlg = wx.DirDialog(None, message, folder,
                         style=wx.DD_DEFAULT_STYLE
                         | wx.DD_DIR_MUST_EXIST
                         | wx.DD_CHANGE_DIR)

@@ -128,6 +128,8 @@ class Controller():
 
     def ShowDialogImportMiscDirectory(self):
         print "ABRIR DIALOGO...................." 
+        dirpath = dialog.ShowImportDirDialog(const.IMPORT_TYPE_MISC)
+        print dirpath
 
     def ShowDialogImportDirectory(self):
         # Offer to save current project if necessary
@@ -139,7 +141,7 @@ class Controller():
             if answer:
                 self.ShowDialogSaveProject()
         # Import project
-        dirpath = dialog.ShowImportDirDialog()
+        dirpath = dialog.ShowImportDirDialog(const.IMPORT_TYPE_DICOM)
         if dirpath and not os.listdir(dirpath):
             dialog.ImportEmptyDirectory(dirpath)
         elif dirpath:

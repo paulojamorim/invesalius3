@@ -542,3 +542,6 @@ DICOM_ENCODING_TO_PYTHON = {
                             'ISO_IR 138': 'iso_ir_138',
                             'ISO_IR 144': 'iso_ir_144',
                             }
+
+IMPORT_TYPE_DICOM = 1
+IMPORT_TYPE_MISC = 0
