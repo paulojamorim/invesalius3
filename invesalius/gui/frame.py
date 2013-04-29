@@ -337,7 +337,7 @@ class Frame(wx.Frame):
         elif id == const.ID_ANALYZE_IMPORT:
             self.ShowAnalyzeImporter()
         elif id == const.ID_MISC_IMAGES_IMPORT:
-            print "IMPORT MISC IMAGES"
+            self.ShowImportMiscPanel()
         elif id == const.ID_PROJECT_SAVE:
             session = ses.Session()
             if session.temp_item:
@@ -413,6 +413,12 @@ class Frame(wx.Frame):
         path = os.path.join(const.DOC_DIR,
                             "user_guide_pt_BR.pdf")
         webbrowser.open(path)
+
+    def ShowImportMiscPanel(self):
+        """
+        Show import misc files panel.
+        """
+        Publisher.sendMessage('Show import misc directory dialog')
 
     def ShowImportDicomPanel(self):
         """

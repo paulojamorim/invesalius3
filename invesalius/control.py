@@ -63,6 +63,8 @@ class Controller():
         Publisher.subscribe(self.OnImportMedicalImages, 'Import directory')
         Publisher.subscribe(self.OnShowDialogImportDirectory,
                                  'Show import directory dialog')
+        Publisher.subscribe(self.OnShowDialogImportMiscDirectory, 
+                                 'Show import misc directory dialog')
         Publisher.subscribe(self.OnShowDialogOpenProject,
                                  'Show open project dialog')
 
@@ -92,6 +94,12 @@ class Controller():
 
 ###########################
 ###########################
+    def OnShowDialogImportMiscDirectory(self, pubsub_evt):
+        """
+        Receive pubsub event from menubar to open import 
+        misc directory dialog.
+        """
+        self.ShowDialogImportMiscDirectory()
 
     def OnShowDialogImportDirectory(self, pubsub_evt):
         self.ShowDialogImportDirectory()
@@ -117,6 +125,9 @@ class Controller():
 
 
 ###########################
+
+    def ShowDialogImportMiscDirectory(self):
+        print "ABRIR DIALOGO...................." 
 
     def ShowDialogImportDirectory(self):
         # Offer to save current project if necessary
