@@ -78,6 +78,7 @@ class Controller():
                                  'Open DICOM group')
         Publisher.subscribe(self.Progress, "Update dicom load")
         Publisher.subscribe(self.OnLoadImportPanel, "End dicom load")
+        Publisher.subscribe(self.OnLoadImportMiscPanel, "End images misc load")
         Publisher.subscribe(self.OnCancelImport, 'Cancel DICOM load')
         Publisher.subscribe(self.OnShowDialogCloseProject, 'Close Project')
         Publisher.subscribe(self.OnOpenProject, 'Open project')
@@ -129,7 +130,9 @@ class Controller():
     def ShowDialogImportMiscDirectory(self):
         print "ABRIR DIALOGO...................." 
         dirpath = dialog.ShowImportDirDialog(const.IMPORT_TYPE_MISC)
-        print dirpath
+        
+        #to test. It's reader.py on end load files
+        Publisher.sendMessage('End images misc load')
 
     def ShowDialogImportDirectory(self):
         # Offer to save current project if necessary
@@ -324,6 +327,9 @@ class Controller():
             #Is None if user canceled the load
             self.progress_dialog.Close()
             self.progress_dialog = None
+
+    def OnLoadImportMiscPanel(self, evt):
+        Publisher.sendMessage('Show import misc panel in frame') 
 
     def OnLoadImportPanel(self, evt):
         patient_series = evt.data

@@ -32,6 +32,7 @@ import default_tasks as tasks
 import default_viewers as viewers
 import gui.dialogs as dlg
 import import_panel as imp
+import import_misc_panel as imp_misc
 import import_network_panel as imp_net
 import project as prj
 import session as ses
@@ -104,6 +105,7 @@ class Frame(wx.Frame):
         sub(self._SetProjectName, 'Set project name')
         sub(self._ShowContentPanel, 'Show content panel')
         sub(self._ShowImportPanel, 'Show import panel in frame')
+        sub(self._ShowImportMiscPanel, 'Show import misc panel in frame')
         sub(self._ShowImportNetwork, 'Show retrieve dicom panel')
         sub(self._ShowTask, 'Show task panel')
         sub(self._UpdateAUI, 'Update AUI')
@@ -150,6 +152,12 @@ class Frame(wx.Frame):
                           Name("Import").Centre().Hide().
                           MaximizeButton(True).Floatable(True).
                           Caption(caption).CaptionVisible(True))
+
+        misc_caption = _("Preview images to be reconstructed")
+        aui_manager.AddPane(imp_misc.Panel(self), wx.aui.AuiPaneInfo().
+                          Name("ImportMisc").Centre().Hide().
+                          MaximizeButton(True).Floatable(True).
+                          Caption(misc_caption).CaptionVisible(True))
 
         ncaption = _("Retrieve DICOM from PACS")
         aui_manager.AddPane(imp_net.Panel(self), wx.aui.AuiPaneInfo().
@@ -296,6 +304,17 @@ class Frame(wx.Frame):
         Publisher.sendMessage("Set layout button data only")
         aui_manager = self.aui_manager
         aui_manager.GetPane("Import").Show(1)
+        aui_manager.GetPane("Data").Show(0)
+        aui_manager.GetPane("Tasks").Show(0)
+        aui_manager.Update()
+
+    def _ShowImportMiscPanel(self, evt_pubsub):
+        """
+        Show only DICOM import panel.
+        """
+        Publisher.sendMessage("Set layout button data only")
+        aui_manager = self.aui_manager
+        aui_manager.GetPane("ImportMisc").Show(1)
         aui_manager.GetPane("Data").Show(0)
         aui_manager.GetPane("Tasks").Show(0)
         aui_manager.Update()
