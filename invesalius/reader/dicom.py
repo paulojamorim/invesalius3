@@ -93,52 +93,6 @@ class Parser():
         self.encoding = ""
         self.filepath = ""
 
-    #def SetFileName(self, filename):
-        """
-        Set file name to be parsed given its filename (this should
-        include the full path of the file of interest).
-
-        Return True/False if file could be read.
-        
-        import os.path as path
-
-
-        filename = path.abspath(filename)
-
-        if (sys.platform == 'win32'):
-            filename = filename.encode('latin-1')
-
-        if path.isfile(filename):
-            # Several information can be acquired from DICOM using
-            # vtkgdcm.vtkGDCMImageReader.GetMedicalImageProperties()
-            # but some tags (such as spacing) can only be achieved
-            # with gdcm.ImageReader()
-            # used to parse DICOM files - similar to vtkDICOMParser
-            gdcm_reader = gdcm.ImageReader()
-            #filename = filename.encode('utf-8')
-
-            gdcm_reader.SetFileName(filename)
-
-            # if DICOM file is null vtkGDCMImageReader raises vtk
-            # exception
-            if not gdcm_reader.Read():
-                return False
-
-            #vtkgdcm_reader = self.vtkgdcm_reader
-            #vtkgdcm_reader.SetFileName(filename)
-            #vtkgdcm_reader.Update()
-
-            self.filename = filename
-            self.gdcm_reader = gdcm_reader
-            #self.vtkgdcm_reader = vtkgdcm_reader
-            return True
-
-        return False"""
-
-    #def GetImageData(self):
-    #    return None#self.vtkgdcm_reader.GetOutput()
-
-
     def SetDataImage(self, data_image, filename, thumbnail_path):
         self.data_image = data_image
         self.filename = self.filepath = filename    
@@ -221,17 +175,6 @@ class Parser():
             return int(str(data))
         return ""
 
-
-    #def GetDimensionZ(self):
-    #    """
-    #    Return float value associated to Z dimension.
-    #    Return "" if not defined.
-    #    """
-    #    data = self.vtkgdcm_reader.GetOutput()\
-    #                        .GetDimensions()[2]
-    #    if (data):
-    #        return float(data)
-    #    return ""
 
     def GetImageDataType(self):
         """
@@ -339,36 +282,6 @@ class Parser():
             return value
         return ""
 
-    def GetAcquisitionTime(self):
-        """
-        Return string containing the acquisition time using the
-        format "hh:mm:ss".
-        Return "" (empty string) if not set.
-
-        DICOM standard tag (0x0008,0x0032) was used.
-        """
-        data = self.data_image['0008']['0032']
-        if (data) and (data != ''):
-            return self.__format_time(str(data))
-        return ""
-
-    def GetPatientAdmittingDiagnosis(self):
-        """
-        Return admitting diagnosis description (string).
-        Return "" (empty string) if not defined.
-
-        DICOM standard tag (0x0008,0x1080) was used.
-        """
-        tag = gdcm.Tag(0x0008, 0x1080)
-        sf = gdcm.StringFilter()
-        sf.SetFile(self.gdcm_reader.GetFile())
-        res = sf.ToStringPair(tag)
-
-        if (res[1]):
-            return int(res[1])
-        return ""
-
-
     def GetImageWindowLevel(self, preset=WL_PRESET, multiple=WL_MULT):
         """
         Return image window center / level (related to brightness).
@@ -463,41 +376,6 @@ class Parser():
             return eval(data)
         return ""
 
-    def GetImageOffset(self):
-        """
-        Return image pixel offset (memory position).
-        Return "" if field is not defined.
-
-        DICOM standard tag (0x7fe0, 0x0010) was used.
-        """
-        try:
-            data = self.data_image['7fe0']['0010']
-        except(KeyError):
-            return ""
-
-        if (data):
-            return int(data.split(':')[1])
-        return ""
-
-
-    def GetImageSeriesNumber(self):
-        """
-        Return integer related to acquisition series where this
-        slice is included.
-        Return "" if field is not defined.
-
-        DICOM standard tag (0x0020, 0x0011) was used.
-        """
-        try:
-            data = self.data_image['0020']['0011']
-        except(KeyError):
-            return ""
-
-        if (data) and (data != '""') and (data != "None"):
-            return int(data)
-        return ""
-
-
     def GetPixelSpacing(self):
         """
         Return [x, y] (number list) related to the distance between
@@ -516,220 +394,6 @@ class Parser():
             return [eval(value) for value in data.split('\\')]
         return ""
 
-    def GetPatientWeight(self):
-        """
-        Return patient's weight as a float value (kilograms).
-        Return "" if field is not defined.
-
-        DICOM standard tag (0x0010, 0x1030) was used.
-        """
-        try:
-            data = self.data_image['0010']['1030']
-        except(KeyError):
-            return ""
-
-        if (data):
-            return float(data)
-        return ""
-
-    def GetPatientHeight(self):
-        """
-        Return patient's height as a float value (meters).
-        Return "" if field is not defined.
-
-        DICOM standard tag (0x0010, 0x1030) was used.
-        """
-        try:
-            data = self.data_image['0010']['1020']
-        except(KeyError):
-            return ""
-
-        if (data):
-            return float(data)
-        return ""
-
-    def GetPatientAddress(self):
-        """
-        Return string containing patient's address.
-
-        DICOM standard tag (0x0010, 0x1040) was used.
-        """
-        try:
-            data = self.data_image['0010']['1040']
-        except(KeyError):
-            return ""
-        if (data):
-            return data
-        return ""
-
-    def GetPatientMilitarRank(self):
-        """
-        Return string containing patient's militar rank.
-        Return "" if field is not defined.
-
-        DICOM standard tag (0x0010, 0x1080) was used.
-        """
-        try:
-            data = self.data_image['0010']['1080']
-        except(KeyError):
-            return ""
-        if (data):
-            return data
-        return ""
-
-    def GetPatientMilitarBranch(self):
-        """
-        Return string containing the militar branch.
-        The country allegiance may also be included
-        (e.g. B.R. Army).
-        Return "" if field is not defined.
-
-        DICOM standard tag (0x0010, 0x1081) was used.
-        """
-        try:
-            data = self.data_image['0010']['1081']
-        except(KeyError):
-            return ""
-        if (data):
-            return data
-        return ""
-
-    def GetPatientCountry(self):
-        """
-        Return string containing the country where the patient
-        currently resides.
-        Return "" if field is not defined.
-
-        DICOM standard tag (0x0010, 0x2150) was used.
-        """
-        try:
-            data = self.data_image['0010']['2150']
-        except(KeyError):
-            return ""
-
-        if (data):
-            return data
-        return ""
-
-    def GetPatientRegion(self):
-        """
-        Return string containing the region where the patient
-        currently resides.
-        Return "" if field is not defined.
-
-        DICOM standard tag (0x0010, 0x2152) was used.
-        """
-        try:
-            data = self.data_image['0010']['2152']
-        except(KeyError):
-            return ""
-
-        if (data):
-            return data
-        return ""
-
-    def GetPatientTelephone(self):
-        """
-        Return string containing the patient's telephone number.
-        Return "" if field is not defined.
-
-        DICOM standard tag (0x0010, 0x2154) was used.
-        """
-        try:
-            data = self.data_image['0010']['2154']
-        except(KeyError):
-            return ""
-
-        if (data):
-            return data
-        return ""
-
-    def GetPatientResponsible(self):
-        """
-        Return string containing the name of the person with
-        medical decision authority in regards to this patient.
-        Return "" if field is not defined.
-
-        DICOM standard tag (0x0010, 0x2297) was used.
-        """
-        try:
-            data = self.data_image['0010']['2297']
-        except(KeyError):
-            return ""
-
-        if (data):
-            return data
-        return ""
-
-    def GetPatientResponsibleRole(self):
-        """
-        Return string containing the relationship of the responsible
-        person in regards to this patient.
-        Return "" if field is not defined.
-
-        DICOM standard tag (0x0010, 0x2298) was used.
-        """
-        try:
-            data = self.data_image['0010']['2298'] 
-        except(KeyError):
-            return ""
-
-        if (data):
-            return data
-        return ""
-
-    def GetPatientResponsibleOrganization(self):
-        """
-        Return string containing the organization name with
-        medical decision authority in regards to this patient.
-        Return "" if field is not defined.
-
-        DICOM standard tag (0x0010, 0x2299) was used.
-        """
-        try:
-            data = self.data_image['0010']['2299']
-        except(KeyError):
-            return ""
-
-        if (data):
-            return data
-        return ""
-
-    def GetPatientMedicalCondition(self):
-        """
-        Return string containing patient medical conditions
-        (e.g. contagious illness, drug allergies, etc.).
-        Return "" if field is not defined.
-
-        DICOM standard tag (0x0010, 0x2000) was used.
-        """
-        try:
-            data = self.data_image['0010']['2000']
-        except(KeyError):
-            return ""
-
-        if (data):
-            return data
-        return ""
-
-    def GetPatientContrastAllergies(self):
-        """
-        Return string containing description of prior alergical
-        reactions to contrast agents.
-        Return "" if field is not defined.
-
-        DICOM standard tag (0x0008, 0x2110) was used.
-        """
-        try:
-            data = self.data_image['0008']['2110'] 
-        except(KeyError):
-            return ""
-
-        if (data):
-            return data
-        return ""
-
-
     def GetPhysicianReferringName(self):
         """
         Return string containing physician
@@ -745,39 +409,6 @@ class Parser():
 
         if data == "None":
             return ""
-        if (data):
-            return data
-        return ""
-
-
-    def GetPhysicianReferringAddress(self):
-        """
-        Return string containing physician's address.
-        Return "" if field is not defined.
-
-        DICOM standard tag (0x0008, 0x0092) was used.
-        """
-        try:
-            data = self.data_image['0008']['0092']
-        except(KeyError):
-            return ""
-
-        if (data):
-            return data
-        return ""
-
-    def GetPhysicianeReferringTelephone(self):
-        """
-        Return string containing physician's telephone.
-        Return "" if field is not defined.
-
-        DICOM standard tag (0x0008, 0x0094) was used.
-        """
-        try:
-            data = self.data_image['0008']['0094']
-        except(KeyError):
-            return ""
-        
         if (data):
             return data
         return ""
@@ -840,40 +471,6 @@ class Parser():
             return data
         return ""
 
-    def GetSOPInstanceUID(self):
-        """
-        Return string containing Unique Identifier for the SOP
-        instance.
-        Return "" if field is not defined.
-
-        Critical DICOM tag (0x0008, 0x0018). Cannot be edited.
-        """
-        try:
-            data = self.data_image['0008']['0018']
-        except(KeyError):
-            return ""
-
-        if (data):
-            return data
-        return ""
-
-    def GetStudyInstanceUID(self):
-        """
-        Return string containing Unique Identifier of the
-        Study Instance.
-        Return "" if field is not defined.
-
-        Critical DICOM Tag (0x0020,0x000D). Cannot be edited.
-        """
-        try:
-            data = self.data_image['0020']['000D'] 
-        except(KeyError):
-            return ""
-
-        if (data):
-            return data
-        return ""
-
     def GetImagePatientOrientation(self):
         """
         Return matrix [x0, x1, x2, y0, y1, y2] related to patient
@@ -894,120 +491,6 @@ class Parser():
             return [float(value) for value in data.split('\\')]
         return [1.0, 0.0, 0.0, 0.0, 1.0, 0.0]
 
-    def GetImageColumnOrientation(self):
-        """
-        Return matrix [x0, x1, x2] related to patient images'
-        column acquisition orientation. All values are in floating
-        point representation.
-        Return "" if field is not defined.
-
-        Critical DICOM tag (0x0020,0x0037). Cannot be edited.
-        """
-        try:
-            data = self.data_image['0020']['0037']
-        except(KeyError):
-            return [0.0, 1.0, 0.0]
-
-        if (data):
-            return [float(value) for value in data.split('\\')[3:6]]
-        return [0.0, 1.0, 0.0]
-
-    def GetImageRowOrientation(self):
-        """
-        Return matrix [y0, y1, y2] related to patient images'
-        row acquisition orientation. All values are in floating
-        point representation.
-        Return "" if field is not defined.
-
-        Critical DICOM tag (0x0020,0x0037). Cannot be edited.
-        """
-        try:
-            data = self.data_image['0020']['0037']
-        except(KeyError):
-            return [1.0, 0.0, 0.0]
-
-        if (data):
-            return [float(value) for value in data.split('\\')[0:3]]
-        return [1.0, 0.0, 0.0]
-
-    def GetFrameReferenceUID(self):
-        """
-        Return string containing Frame of Reference UID.
-        Return "" if field is not defined.
-
-        Critical DICOM tag (0x0020,0x0052). Cannot be edited.
-        """
-        try:
-            data = self.data_image['0020']['0052']
-        except(KeyError):
-            return ""
-
-        if (data):
-            return data
-        return ""
-
-    def GetImageSamplesPerPixel(self):
-        """
-        Return integer related to Samples per Pixel. Eg. 1.
-        Return "" if field is not defined.
-
-        Critical DICOM tag (0x0028,0x0002). Cannot be edited.
-        """
-        tag = gdcm.Tag(0x0028, 0x0002)
-        sf = gdcm.StringFilter()
-        sf.SetFile(self.gdcm_reader.GetFile())
-        res = sf.ToStringPair(tag)
-        if (res[1]):
-            return int(res[1])
-        return ""
-
-    def GetPhotometricInterpretation(self):
-        """
-        Return string containing the photometric interpretation.
-        Eg. "MONOCHROME2".
-        Return "" if field is not defined.
-
-        Critical DICOM tag (0x0028,0x0004). Cannot be edited.
-        """
-        tag = gdcm.Tag(0x0028, 0x0004)
-        sf = gdcm.StringFilter()
-        sf.SetFile(self.gdcm_reader.GetFile())
-        res = sf.ToStringPair(tag)
-        if (res[1]):
-            return res[1]
-        return ""
-
-    def GetBitsStored(self):
-        """
-        Return number related to number of bits stored.
-        Eg. 12 or 16.
-        Return "" if field is not defined.
-
-        Critical DICOM tag (0x0028,0x0101). Cannot be edited.
-        """
-        tag = gdcm.Tag(0x0028, 0x0101)
-        sf = gdcm.StringFilter()
-        sf.SetFile(self.gdcm_reader.GetFile())
-        res = sf.ToStringPair(tag)
-        if (res[1]):
-            return int(res[1])
-        return ""
-
-    def GetHighBit(self):
-        """
-        Return string containing hight bit. This is commonly 11 or 15.
-        Return "" if field is not defined.
-
-        Critical DICOM tag (0x0028,0x0102). Cannot be edited.
-        """
-        tag = gdcm.Tag(0x0028, 0x0102)
-        sf = gdcm.StringFilter()
-        sf.SetFile(self.gdcm_reader.GetFile())
-        res = sf.ToStringPair(tag)
-        if (res[1]):
-            return int(res[1])
-        return ""
-
     def GetProtocolName(self):
         """
         Return protocol name (string). This info varies according to
@@ -1025,31 +508,6 @@ class Parser():
             return ""
         return ""
 
-    def GetAcquisionSequence(self):
-        """
-        Return description (string) of the sequence how data was
-        acquired. That is:
-          - SE = Spin Echo
-          - IR = Inversion Recovery
-          - GR = Gradient Recalled
-          - EP = Echo Planar
-          - RM = Research Mode
-        In some cases this information is presented in other forms:
-          - HELICAL_CT
-          - SCANOSCOPE
-        Return "" if field is not defined.
-
-        Critical DICOM tag (0x0018, 0x0020). Cannot be edited.
-        """
-        try:
-            data = self.data_image['0018']['0020']
-        except(KeyError):
-            return ""
-
-        if (data):
-            return data
-        return ""
-
     def GetInstitutionName(self):
         """
         Return instution name (string) of the institution where the
@@ -1064,57 +522,6 @@ class Parser():
 
         if (data):
                 return data
-        return ""
-
-    def GetInstitutionAddress(self):
-        """
-        Return mailing address (string) of the institution where the
-        acquisitin quipment is located. Some institutions record only
-        the city, other record the full address.
-        Return "" if field is not defined.
-
-        DICOM standard tag (0x0008, 0x0081) was used.
-        """
-        try:
-            data = self.data_image['0008']['0081']
-        except(KeyError):
-            return ""
-
-        if (data):
-            return data
-        return ""
-
-    def GetStudyInstanceUID(self):
-        """
-        Return Study Instance UID (string), related to series being
-        analized.
-        Return "" if field is not defined.
-
-        Critical DICOM tag (0x0020, 0x000D). Cannot be edited.
-        """
-        try:
-            data = self.data_image['0020']['000D']
-        except(KeyError):
-            return ""
-
-        if (data):
-            return data
-        return ""
-
-    def GetPatientOccupation(self):
-        """
-        Return occupation of the patient (string).
-        Return "" if field is not defined.
-
-        DICOM standard tag (0x0010,0x2180) was used.
-        """
-        try:
-            data = self.data_image['0010']['2180']
-        except(KeyError):
-            return ""
-
-        if (data):
-            return data
         return ""
 
     def _GetPixelRepresentation(self):
@@ -1185,7 +592,6 @@ class Parser():
         if (data) and (data != 'None'):
             return self.__format_date(str(data))
         return ""
-
 
     def GetStudyID(self):
         """
@@ -1313,58 +719,6 @@ class Parser():
                 return data
         return ""
 
-
-    def GetEquipmentXRayTubeCurrent(self):
-        """
-        Return float value associated to the X-ray tube current
-        (expressed in mA).
-        Return "" if not defined.
-
-        DICOM standard tag (0x0018,0x1151) was used.
-        """
-        try:
-            data = self.data_image['0018']['1151']
-        except(KeyError):
-            return ""
-
-        if (data):
-            return data
-        return ""
-
-    def GetExposureTime(self):
-        """
-        Return float value associated to the time of X-ray tube current
-        exposure (expressed in s).
-        Return "" if not defined.
-
-        DICOM standard tag (0x0018, 0x1152) was used.
-        """
-        try:
-            data = self.data_image['0018']['1152']
-        except(KeyError):
-            return ""
-
-        if (data):
-            return float(data)
-        return ""
-
-    def GetEquipmentKVP(self):
-        """
-        Return float value associated to the kilo voltage peak
-        output of the (x-ray) used generator.
-        Return "" if not defined.
-
-        DICOM standard tag (0x0018,0x0060) was used.
-        """
-        try:
-            data = self.data_image['0018']['0060']
-        except(KeyError):
-            return ""
-
-        if (data):
-            return float(data)
-        return ""
-
     def GetImageThickness(self):
         """
         Return float value related to the nominal reconstructed
@@ -1434,53 +788,6 @@ class Parser():
             return data
         return ""
 
-    def GetManufacturerModelName(self):
-        """
-        Return equipment model name (string) used to generate exam
-        files.
-        Return "" if not defined.
-
-        DICOM standard tag (0x0008,0x1090) was used.
-        """
-        try:
-            data = self.data_image['0008']['1090']
-        except(KeyError):
-            return ""
-
-        if (data):
-            return data
-        return ""
-
-    def GetManufacturerName(self):
-        """
-        Return Manufacturer of the equipment that produced 
-        the composite instances.
-        """
-        try:
-            data = self.data_image['0008']['0070']
-        except(KeyError):
-            return ""
-
-        if (data):
-            return data
-        return ""
-
-    def GetEquipmentManufacturer(self):
-        """
-        Return manufacturer name (string).
-        Return "" if not defined.
-
-        DICOM standard tag (0x0008, 0x1010) was used.
-        """
-        try:
-            data = self.data_image['0008']['1010']
-        except(KeyError):
-            return ""
-
-        if (data):
-            return data
-        return ""
-
     def GetAcquisitionModality(self):
         """
         Return modality of acquisition:
@@ -1498,7 +805,6 @@ class Parser():
         if (data):
             return data
         return ""
-
 
     def GetImageNumber(self):
         """
@@ -1531,24 +837,6 @@ class Parser():
         except(KeyError):
             return ""
 
-    def GetStudyAdmittingDiagnosis(self):
-        """
-        Return admitting diagnosis description (string).
-        Return "" (empty string) if not defined.
-
-        DICOM standard tag (0x0008,0x1080) was used.
-        """
-
-        tag = gdcm.Tag(0x0008, 0x1080)
-        sf = gdcm.StringFilter()
-        sf.SetFile(self.gdcm_reader.GetFile())
-        res = sf.ToStringPair(tag)
-
-        if (res[1]):
-            return str(res[1])
-        return ""
-
-    
     def GetSeriesDescription(self):
         """
         Return a string with a description of the series.
@@ -1593,6 +881,20 @@ class Parser():
             return self.__format_time(data)
         return ""
 
+    def GetManufacturerName(self):
+        """
+        Return Manufacturer of the equipment that produced 
+        the composite instances.
+        """
+        try:
+            data = self.data_image['0008']['0070']
+        except(KeyError):
+            return ""
+
+        if (data):
+            return data
+        return ""
+
     def GetSerieNumber(self):
         """
         Return the serie number
@@ -1617,179 +919,6 @@ class Parser():
             return const.DICOM_ENCODING_TO_PYTHON[encoding_value]
         except(KeyError):
             return 'ISO_IR_100'
-
-
-class DicomWriter:
-
-    """
-    This class is dicom to edit files and create new
-    files with images of dicom vtkImageData.
-
-    Example of use:
-
-    Editing Patient Tag:
-
-    >> write = ivDicomWriter.DicomWriter()
-    >> write.SetFileName("C:\\my_dicom.dcm")
-    >> write.SetPatientName("InVesalius")
-    >> write.Save()
-
-
-    Creating new dicom:
-
-    >>> jpeg = vtk.vtkJPEGReader()
-    >>> jpeg.SetFileName("c:\\img.jpg")
-    >>> jpeg.Update()
-
-    >>> write = ivDicomWriter.DicomWriter()
-    >>> write.SetFileName("C:\\my_new_dicom.dcm")
-    >>> write.SaveIsNew(jpeg.GetOutput())
-    >>> write.SetPatientName("InVesalius")
-    >>> write.Save()
-    """
-
-    def __init__(self):
-
-        self.reader = ""
-        self.anony = gdcm.Anonymizer()
-        self.path = ""
-        self.new_dicom = vtkgdcm.vtkGDCMImageWriter()
-        reader = self.reader = gdcm.Reader()
-
-
-    def SetFileName(self, path):
-        """
-        Set Dicom File Name
-        """
-        self.path = path
-
-        self.reader.SetFileName(path)
-
-        if (self.reader.Read()):
-
-            self.anony.SetFile(self.reader.GetFile())
-
-
-
-    def SetInput(self, img_data):
-        """
-        Input vtkImageData
-        """
-        self.img_data = img_data
-
-
-    def __CreateNewDicom(self, img_data):
-        """
-        Create New Dicom File, input is
-        a vtkImageData
-        """
-        new_dicom = self.new_dicom
-        new_dicom.SetFileName(self.path)
-        new_dicom.SetInput(img_data)
-        new_dicom.Write()
-
-
-    def SaveIsNew(self, img_data):
-        """
-        Write Changes in Dicom file or Create
-        New Dicom File
-        """
-
-        self.__CreateNewDicom(img_data)
-
-        #Is necessary to create and add
-        #information in the dicom tag
-        self.SetFileName(self.path)
-        self.anony.SetFile(self.reader.GetFile())
-
-
-    def Save(self):
-
-        reader = self.reader
-
-        writer = gdcm.Writer()
-        writer.SetFile(self.reader.GetFile())
-        writer.SetFileName(self.path)
-        writer.Write()
-
-
-    def SetPatientName(self, patient):
-        """
-        Set Patient Name requeries string type
-        """
-        self.anony.Replace(gdcm.Tag(0x0010,0x0010), \
-                           str(patient))
-
-
-    def SetImageThickness(self, thickness):
-        """
-        Set thickness value requeries float type
-        """
-        self.anony.Replace(gdcm.Tag(0x0018,0x0050), \
-                           str(thickness))
-
-
-    def SetImageSeriesNumber(self, number):
-        """
-        Set Serie Number value requeries int type
-        """
-        self.anony.Replace(gdcm.Tag(0x0020,0x0011), \
-                           str(number))
-
-
-    def SetImageNumber(self, number):
-        """
-        Set image Number value requeries int type
-        """
-        self.anony.Replace(gdcm.Tag(0x0020,0x0013),
-                           str(number))
-
-
-    def SetImageLocation(self, location):
-        """
-        Set slice location value requeries float type
-        """
-        self.anony.Replace(gdcm.Tag(0x0020,0x1041),\
-                           str(number))
-
-
-    def SetImagePosition(self, position):
-        """
-        Set slice position value requeries list
-        with three values x, y and z
-        """
-        self.anony.Replace(gdcm.Tag(0x0020,0x0032), \
-                           str(position[0]) + \
-                           "\\" + str(position[1]) + \
-                           "\\" + str(position[2]))
-
-
-    def SetAcquisitionModality(self, modality):
-        """
-        Set modality study CT or RM
-        """
-        self.anony.Replace(gdcm.Tag(0x0008,0x0060), \
-                           str(modality))
-
-
-    def SetPixelSpacing(self, spacing):
-        """
-        Set pixel spacing x and y
-        """
-        self.anony.Replace(gdcm.Tag(0x0028,0x0030), \
-                           str(spacing))
-
-
-    def SetInstitutionName(self, institution):
-        """
-        Set institution name
-        """
-        self.anony.Replace(gdcm.Tag(0x0008, 0x0080), \
-                           str(institution))
-
-
-
-
 
 
 def BuildDictionary(filename):

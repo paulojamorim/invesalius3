@@ -178,8 +178,6 @@ class LoadDicom:
 
                 pds.Next()
 
-            print(field_dict)
-
             # -------------- To Create DICOM Thumbnail -----------
             try:
                 data = data_dict['0028']['1050']
