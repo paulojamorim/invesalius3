@@ -204,7 +204,7 @@ class Parser():
         to the number of columns on the image.
         Return "" if not defined.
         """
-        data = self.data_image[str(0x028)][str(0x011)]
+        data = self.data_image['0028']['0011']
         if (data):
             return int(str(data))
         return ""
@@ -216,7 +216,7 @@ class Parser():
         to the number of rows on the image.
         Return "" if not defined.
         """
-        data = self.data_image[str(0x028)][str(0x010)]
+        data = self.data_image['0028']['0010']
         if (data):
             return int(str(data))
         return ""
@@ -303,7 +303,7 @@ class Parser():
         """
         # TODO: internationalize data
         try:
-            date = self.data_image[str(0x0008)][str(0x0022)] 
+            date = self.data_image['0008']['0022'] 
         except(KeyError):
             return ""
 
@@ -318,7 +318,7 @@ class Parser():
 
         DICOM standard tag (0x0020, 0x0012) was used.
         """
-        data = self.data_image[str(0x0020)][str(0x0012)] 
+        data = self.data_image['0020']['0012'] 
         if (data):
             return int(str(data))
         return ""
@@ -347,7 +347,7 @@ class Parser():
 
         DICOM standard tag (0x0008,0x0032) was used.
         """
-        data = self.data_image[str(0x008)][str(0x032)]
+        data = self.data_image['0008']['0032']
         if (data) and (data != ''):
             return self.__format_time(str(data))
         return ""
@@ -382,7 +382,7 @@ class Parser():
         DICOM standard tag (0x0028,0x1050) was used.
         """
         try:
-            data = self.data_image[str(0x028)][str(0x1050)]
+            data = self.data_image['0028']['1050']
         except(KeyError):
             return "300"
         if (data):
@@ -414,7 +414,7 @@ class Parser():
         DICOM standard tag (0x0028,0x1051) was used.
         """
         try:
-            data = self.data_image[str(0x028)][str(0x1051)]
+            data = self.data_image['0028']['1051']
         except(KeyError):
             return "2000"
 
@@ -443,7 +443,7 @@ class Parser():
         DICOM standard tag (0x0020, 0x0032) was used.
         """
         try:
-            data = self.data_image[str(0x020)][str(0x032)].replace(",", ".")
+            data = self.data_image['0020']['0032'].replace(",", ".")
         except(KeyError):
             return ""
         if (data):
@@ -458,7 +458,7 @@ class Parser():
 
         DICOM standard tag (0x0020, 0x0032) was used.
         """
-        data = self.data_image[str(0x020)][str(0x1041)]
+        data = self.data_image['0020']['1041']
         if (data):
             return eval(data)
         return ""
@@ -471,7 +471,7 @@ class Parser():
         DICOM standard tag (0x7fe0, 0x0010) was used.
         """
         try:
-            data = self.data_image[str(0x7fe0)][str(0x0010)]
+            data = self.data_image['7fe0']['0010']
         except(KeyError):
             return ""
 
@@ -489,7 +489,7 @@ class Parser():
         DICOM standard tag (0x0020, 0x0011) was used.
         """
         try:
-            data = self.data_image[str(0x020)][str(0x011)]
+            data = self.data_image['0020']['0011']
         except(KeyError):
             return ""
 
@@ -509,7 +509,7 @@ class Parser():
         DICOM standard tag (0x0028, 0x0030) was used.
         """
         try:
-            data = self.data_image[str(0x0028)][str(0x0030)].replace(",", ".")
+            data = self.data_image['0028']['0030'].replace(",", ".")
         except(KeyError):
             return ""
         if (data):
@@ -524,7 +524,7 @@ class Parser():
         DICOM standard tag (0x0010, 0x1030) was used.
         """
         try:
-            data = self.data_image[str(0x0010)][str(0x1030)]
+            data = self.data_image['0010']['1030']
         except(KeyError):
             return ""
 
@@ -540,7 +540,7 @@ class Parser():
         DICOM standard tag (0x0010, 0x1030) was used.
         """
         try:
-            data = self.data_image[str(0x010)][str(0x1020)]
+            data = self.data_image['0010']['1020']
         except(KeyError):
             return ""
 
@@ -555,7 +555,7 @@ class Parser():
         DICOM standard tag (0x0010, 0x1040) was used.
         """
         try:
-            data = self.data_image[str(0x010)][str(0x1040)]
+            data = self.data_image['0010']['1040']
         except(KeyError):
             return ""
         if (data):
@@ -570,7 +570,7 @@ class Parser():
         DICOM standard tag (0x0010, 0x1080) was used.
         """
         try:
-            data = self.data_image[str(0x010)][str(0x1080)]
+            data = self.data_image['0010']['1080']
         except(KeyError):
             return ""
         if (data):
@@ -587,7 +587,7 @@ class Parser():
         DICOM standard tag (0x0010, 0x1081) was used.
         """
         try:
-            data = self.data_image[str(0x010)][str(0x1081)]
+            data = self.data_image['0010']['1081']
         except(KeyError):
             return ""
         if (data):
@@ -603,7 +603,7 @@ class Parser():
         DICOM standard tag (0x0010, 0x2150) was used.
         """
         try:
-            data = self.data_image[str(0x0010)][str(0x2150)]
+            data = self.data_image['0010']['2150']
         except(KeyError):
             return ""
 
@@ -620,7 +620,7 @@ class Parser():
         DICOM standard tag (0x0010, 0x2152) was used.
         """
         try:
-            data = self.data_image[str(0x0010)][str(0x2152)]
+            data = self.data_image['0010']['2152']
         except(KeyError):
             return ""
 
@@ -636,7 +636,7 @@ class Parser():
         DICOM standard tag (0x0010, 0x2154) was used.
         """
         try:
-            data = self.data_image[str(0x0010)][str(0x2154)]
+            data = self.data_image['0010']['2154']
         except(KeyError):
             return ""
 
@@ -653,7 +653,7 @@ class Parser():
         DICOM standard tag (0x0010, 0x2297) was used.
         """
         try:
-            data = self.data_image[str(0x0010)][str(0x2297)]
+            data = self.data_image['0010']['2297']
         except(KeyError):
             return ""
 
@@ -670,7 +670,7 @@ class Parser():
         DICOM standard tag (0x0010, 0x2298) was used.
         """
         try:
-            data = self.data_image[str(0x0010)][str(0x2298)] 
+            data = self.data_image['0010']['2298'] 
         except(KeyError):
             return ""
 
@@ -687,7 +687,7 @@ class Parser():
         DICOM standard tag (0x0010, 0x2299) was used.
         """
         try:
-            data = self.data_image[str(0x0010)][str(0x2299)]
+            data = self.data_image['0010']['2299']
         except(KeyError):
             return ""
 
@@ -704,7 +704,7 @@ class Parser():
         DICOM standard tag (0x0010, 0x2000) was used.
         """
         try:
-            data = self.data_image[str(0x0010)][str(0x2000)]
+            data = self.data_image['0010']['2000']
         except(KeyError):
             return ""
 
@@ -721,7 +721,7 @@ class Parser():
         DICOM standard tag (0x0008, 0x2110) was used.
         """
         try:
-            data = self.data_image[str(0x0008)][str(0x2110)] 
+            data = self.data_image['0008']['2110'] 
         except(KeyError):
             return ""
 
@@ -739,7 +739,7 @@ class Parser():
         DICOM standard tag (0x0008, 0x0090) was used.
         """
         try:
-            data = self.data_image[str(0x0008)][str(0x0090)]
+            data = self.data_image['0008']['0090']
         except(KeyError):
             return ""
 
@@ -758,7 +758,7 @@ class Parser():
         DICOM standard tag (0x0008, 0x0092) was used.
         """
         try:
-            data = self.data_image[str(0x0008)][str(0x0092)]
+            data = self.data_image['0008']['0092']
         except(KeyError):
             return ""
 
@@ -774,7 +774,7 @@ class Parser():
         DICOM standard tag (0x0008, 0x0094) was used.
         """
         try:
-            data = self.data_image[str(0x0008)][str(0x0094)]
+            data = self.data_image['0008']['0094']
         except(KeyError):
             return ""
         
@@ -790,7 +790,7 @@ class Parser():
         DICOM standard tag (0x0018, 0x1030) was used.
         """
         try:
-            data = self.data_image[str(0x0018)][str(0x1030)]
+            data = self.data_image['0018']['1030']
         except(KeyError):
             return None
 
@@ -808,7 +808,7 @@ class Parser():
         Critical DICOM tag (0x0008, 0x0008). Cannot be editted.
         """
         try:
-            data = self.data_image[str(0x008)][str(0x008)]
+            data = self.data_image['0008']['0008']
         except(IndexError):
             return []
         # TODO: Check if set image type to empty is the right way of handling
@@ -832,7 +832,7 @@ class Parser():
         Critical DICOM tag (0x0008, 0x0016). Cannot be edited.
         """
         try:
-            data = self.data_image[str(0x0008)][str(0x0016)]
+            data = self.data_image['0008']['0016']
         except(KeyError):
             return ""
 
@@ -849,7 +849,7 @@ class Parser():
         Critical DICOM tag (0x0008, 0x0018). Cannot be edited.
         """
         try:
-            data = self.data_image[str(0x0008)][str(0x0018)]
+            data = self.data_image['0008']['0018']
         except(KeyError):
             return ""
 
@@ -866,7 +866,7 @@ class Parser():
         Critical DICOM Tag (0x0020,0x000D). Cannot be edited.
         """
         try:
-            data = self.data_image[str(0x0020)][str(0x000D)] 
+            data = self.data_image['0020']['000D'] 
         except(KeyError):
             return ""
 
@@ -886,7 +886,7 @@ class Parser():
         Critical DICOM tag (0x0020,0x0037). Cannot be edited.
         """
         try:
-            data = self.data_image[str(0x0020)][str(0x0037)].replace(",", ".")
+            data = self.data_image['0020']['0037'].replace(",", ".")
         except(KeyError):
             return [1.0, 0.0, 0.0, 0.0, 1.0, 0.0]
 
@@ -904,7 +904,7 @@ class Parser():
         Critical DICOM tag (0x0020,0x0037). Cannot be edited.
         """
         try:
-            data = self.data_image[str(0x0020)][str(0x0037)]
+            data = self.data_image['0020']['0037']
         except(KeyError):
             return [0.0, 1.0, 0.0]
 
@@ -922,7 +922,7 @@ class Parser():
         Critical DICOM tag (0x0020,0x0037). Cannot be edited.
         """
         try:
-            data = self.data_image[str(0x0020)][str(0x0037)]
+            data = self.data_image['0020']['0037']
         except(KeyError):
             return [1.0, 0.0, 0.0]
 
@@ -938,7 +938,7 @@ class Parser():
         Critical DICOM tag (0x0020,0x0052). Cannot be edited.
         """
         try:
-            data = self.data_image[str(0x0020)][str(0x0052)]
+            data = self.data_image['0020']['0052']
         except(KeyError):
             return ""
 
@@ -1018,7 +1018,7 @@ class Parser():
         DICOM standard tag (0x0018, 0x1030) was used.
         """
         try:
-            data = self.data_image[str(0x0018)][str(0x1030)]
+            data = self.data_image['0018']['1030']
             if (data):
                 return data
         except(KeyError):
@@ -1042,7 +1042,7 @@ class Parser():
         Critical DICOM tag (0x0018, 0x0020). Cannot be edited.
         """
         try:
-            data = self.data_image[str(0x0018)][str(0x0020)]
+            data = self.data_image['0018']['0020']
         except(KeyError):
             return ""
 
@@ -1058,7 +1058,7 @@ class Parser():
         DICOM standard tag (0x0008, 0x0080) was used.
         """
         try:
-            data = self.data_image[str(0x0008)][str(0x0080)]    
+            data = self.data_image['0008']['0080']    
         except(KeyError):
             return ""
 
@@ -1076,7 +1076,7 @@ class Parser():
         DICOM standard tag (0x0008, 0x0081) was used.
         """
         try:
-            data = self.data_image[str(0x0008)][str(0x0081)]
+            data = self.data_image['0008']['0081']
         except(KeyError):
             return ""
 
@@ -1093,7 +1093,7 @@ class Parser():
         Critical DICOM tag (0x0020, 0x000D). Cannot be edited.
         """
         try:
-            data = self.data_image[str(0x0020)][str(0x000D)]
+            data = self.data_image['0020']['000D']
         except(KeyError):
             return ""
 
@@ -1109,7 +1109,7 @@ class Parser():
         DICOM standard tag (0x0010,0x2180) was used.
         """
         try:
-            data = self.data_image[str(0x0010)][str(0x2180)]
+            data = self.data_image['0010']['2180']
         except(KeyError):
             return ""
 
@@ -1147,7 +1147,7 @@ class Parser():
         #sf.SetFile(self.gdcm_reader.GetFile())
         #res = sf.ToStringPair(tag)
         try:
-            data = self.data_image[str(0x0028)][str(0x0100)]
+            data = self.data_image['0028']['0100']
         except(KeyError):
             return ""
 
@@ -1162,7 +1162,7 @@ class Parser():
         DICOM standard tag (0x0028, 0x0008) was used.
         """
         try:
-            data = self.data_image[str(0x028)][str(0x0008)]
+            data = self.data_image['0028']['0008']
         except KeyError:
             return 1
         return int(data)
@@ -1178,7 +1178,7 @@ class Parser():
         """
         # TODO: internationalize data
         try:
-            data = self.data_image[str(0x0010)][str(0x0030)]
+            data = self.data_image['0010']['0030']
         except(KeyError):
             return ""
 
@@ -1195,7 +1195,7 @@ class Parser():
         DICOM standard tag (0x0020,0x0010) was used.
         """
         try:
-            data = self.data_image[str(0x0020)][str(0x0010)]
+            data = self.data_image['0020']['0010']
         except(KeyError):
             return ""
 
@@ -1212,7 +1212,7 @@ class Parser():
         DICOM standard tag (0x0018,0x1120) was used.
         """
         try:
-            data = self.data_image[str(0x0018)][str(0x1120)]
+            data = self.data_image['0018']['1120']
         except(KeyError):
             return 0.0
 
@@ -1231,7 +1231,7 @@ class Parser():
         DICOM standard tag (0x0010,0x0040) was used.
         """
         try:
-            data = self.data_image[str(0x0010)][str(0x0040)]
+            data = self.data_image['0010']['0040']
         except(KeyError):
             return ""
 
@@ -1255,7 +1255,7 @@ class Parser():
         DICOM standard tag (0x0010, 0x1010) was used.
         """
         try:
-            data = self.data_image[str(0x0010)][str(0x1010)]
+            data = self.data_image['0010']['1010']
         except(KeyError):
             return ""
 
@@ -1275,7 +1275,7 @@ class Parser():
         DICOM standard tag (0x0010,0x0010) was used.
         """
         try:
-            data = self.data_image[str(0x0010)][str(0x0010)]
+            data = self.data_image['0010']['0010']
         except(KeyError):
             return ""
 
@@ -1300,7 +1300,7 @@ class Parser():
         DICOM standard tag (0x0010,0x0020) was used.
         """
         try:
-            data = self.data_image[str(0x0010)][str(0x0020)]
+            data = self.data_image['0010']['0020']
         except(KeyError):
             return ""
 
@@ -1323,7 +1323,7 @@ class Parser():
         DICOM standard tag (0x0018,0x1151) was used.
         """
         try:
-            data = self.data_image[str(0x0018)][str(0x1151)]
+            data = self.data_image['0018']['1151']
         except(KeyError):
             return ""
 
@@ -1340,7 +1340,7 @@ class Parser():
         DICOM standard tag (0x0018, 0x1152) was used.
         """
         try:
-            data = self.data_image[str(0x0018)][str(0x1152)]
+            data = self.data_image['0018']['1152']
         except(KeyError):
             return ""
 
@@ -1357,7 +1357,7 @@ class Parser():
         DICOM standard tag (0x0018,0x0060) was used.
         """
         try:
-            data = self.data_image[str(0x0018)][str(0x0060)]
+            data = self.data_image['0018']['0060']
         except(KeyError):
             return ""
 
@@ -1374,7 +1374,7 @@ class Parser():
         DICOM standard tag (0x0018,0x0050) was used.
         """
         try:
-            data = self.data_image[str(0x0018)][str(0x0050)].replace(",", ".")
+            data = self.data_image['0018']['0050'].replace(",", ".")
         except(KeyError):
             return 0
         if (data):
@@ -1392,7 +1392,7 @@ class Parser():
         DICOM standard tag (0x0018,0x1210) was used.
         """
         try:
-            data = self.data_image[str(0x0018)][str(0x1210)]
+            data = self.data_image['0018']['1210']
         except(KeyError):
             return ""
 
@@ -1409,7 +1409,7 @@ class Parser():
         DICOM standard tag (0x0008,0x0080) was used.
         """
         try:
-            data = self.data_image[str(0x0008)][str(0x0080)]
+            data = self.data_image['0008']['0080']
         except(KeyError):
             return ""
 
@@ -1426,7 +1426,7 @@ class Parser():
         DICOM standard tag (0x0008, 0x1010) was used.
         """
         try:
-            data = self.data_image[str(0x0008)][str(0x1010)]
+            data = self.data_image['0008']['1010']
         except(KeyError):
             return ""
 
@@ -1443,7 +1443,7 @@ class Parser():
         DICOM standard tag (0x0008,0x1090) was used.
         """
         try:
-            data = self.data_image[str(0x0008)][str(0x1090)]
+            data = self.data_image['0008']['1090']
         except(KeyError):
             return ""
 
@@ -1457,7 +1457,7 @@ class Parser():
         the composite instances.
         """
         try:
-            data = self.data_image[str(0x0008)][str(0x0070)]
+            data = self.data_image['0008']['0070']
         except(KeyError):
             return ""
 
@@ -1473,7 +1473,7 @@ class Parser():
         DICOM standard tag (0x0008, 0x1010) was used.
         """
         try:
-            data = self.data_image[str(0x0008)][str(0x1010)]
+            data = self.data_image['0008']['1010']
         except(KeyError):
             return ""
 
@@ -1491,7 +1491,7 @@ class Parser():
         DICOM standard tag (0x0008,0x0060) was used.
         """
         try:
-            data = self.data_image[str(0x0008)][str(0x0060)]
+            data = self.data_image['0008']['0060']
         except(KeyError):
             return ""
 
@@ -1508,7 +1508,7 @@ class Parser():
         DICOM standard tag (0x0020,0x0013) was used.
         """
         try:
-            data = self.data_image[str(0x0020)][str(0x0013)]
+            data = self.data_image['0020']['0013']
         except(KeyError):
             return 0
 
@@ -1524,7 +1524,7 @@ class Parser():
         DICOM standard tag (0x0008,0x1030) was used.
         """
         try:
-            data = self.data_image[str(0x0008)][str(0x1030)]
+            data = self.data_image['0008']['1030']
             if (data):
                 encoding = self.GetEncoding()
                 return utils.decode(data, encoding, 'replace')
@@ -1555,7 +1555,7 @@ class Parser():
         DICOM standard tag (0x0008, 0x103E) was used.
         """
         try:
-            data = self.data_image[str(0x0008)][str(0x103E)]
+            data = self.data_image['0008']['103E']
             if data == "None":
                 return _("unnamed")
             if (data):
@@ -1571,7 +1571,7 @@ class Parser():
         DICOM standard tag (0x0008,0x0033) was used.
         """
         try:
-            data = self.data_image[str(0x0008)][str(0x0033)]
+            data = self.data_image['0008']['0033']
         except(KeyError):
             return ""
 
@@ -1585,7 +1585,7 @@ class Parser():
         DICOM standard tag (0x0008,0x032) was used.
         """
         try:
-            data = self.data_image[str(0x0008)][str(0x0032)]
+            data = self.data_image['0008']['0032']
         except(KeyError):
             return ""
 
@@ -1599,7 +1599,7 @@ class Parser():
         DICOM standard tag (0x0020, 0x0011) was used.
         """
         try:
-            data = self.data_image[str(0x0020)][str(0x0011)]
+            data = self.data_image['0020']['0011']
         except(KeyError):
             return ""
         
@@ -1613,7 +1613,7 @@ class Parser():
         DICOM standard tag (0x0008, 0x0005) was used.
         """
         try:
-            encoding_value = self.data_image[str(0x0008)][str(0x0005)]
+            encoding_value = self.data_image['0008']['0005']
             return const.DICOM_ENCODING_TO_PYTHON[encoding_value]
         except(KeyError):
             return 'ISO_IR_100'

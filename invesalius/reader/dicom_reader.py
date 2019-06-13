@@ -91,7 +91,6 @@ def SortFiles(filelist, dicom):
 
     return filelist
 
-tag_labels = {}
 main_dict = {}
 dict_file = {}
 
@@ -127,6 +126,7 @@ class LoadDicom:
             field_dict = {}
             data_dict = {}
 
+            #to take DICOM encoding
             tag = gdcm.Tag(0x0008, 0x0005)
             ds = reader.GetFile().GetDataSet()
             if ds.FindDataElement(tag):
@@ -141,62 +141,43 @@ class LoadDicom:
                         encoding = 'ISO_IR 100'
             else:
                 encoding = "ISO_IR 100"
+    
+            #----- dump all dicom tags and extract values -----------------
+            pds = gdcm.PythonDataSet(ds)
+            sf = gdcm.StringFilter()
+            pds.Start()
+            dic={}
+            sf.SetFile(file)
 
-            # Iterate through the Header
-            iterator = header.GetDES().begin()
-            while (not iterator.equal(header.GetDES().end())):
-                dataElement = iterator.next()
-                if not dataElement.IsUndefinedLength():
-                    tag = dataElement.GetTag()
-                    data = stf.ToStringPair(tag)
-                    stag = tag.PrintAsPipeSeparatedString()
+            while(not pds.IsAtEnd()):
+                res = sf.ToStringPair(pds.GetCurrent().GetTag())
+                tag = str(pds.GetCurrent().GetTag())
+               
+                #split group and field 
+                tag = tag.replace("(","")
+                tag = tag.replace(")","")
+                tag = tag.split(",")
 
-                    group = str(tag.GetGroup())
-                    field = str(tag.GetElement())
+                group = tag[0]
+                field = tag[1]
 
-                    tag_labels[stag] = data[0]
+                if not group in data_dict.keys():
+                    data_dict[group] = {}
+                
+                if not(utils.VerifyInvalidPListCharacter(res[1])):
+                    data_dict[group][field] = utils.decode(res[1], encoding, 'namereplace')
+                else:
+                    data_dict[group][field] = "Invalid Character"
+                
+                pds.Next()
 
-                    if not group in data_dict.keys():
-                        data_dict[group] = {}
-
-                    if not(utils.VerifyInvalidPListCharacter(data[1])):
-                        data_dict[group][field] = utils.decode(data[1], encoding)
-                    else:
-                        data_dict[group][field] = "Invalid Character"
-
-            # Iterate through the Data set
-            iterator = dataSet.GetDES().begin()
-            while (not iterator.equal(dataSet.GetDES().end())):
-                dataElement = iterator.next()
-                if not dataElement.IsUndefinedLength():
-                    tag = dataElement.GetTag()
-                    #  if (tag.GetGroup() == 0x0009 and tag.GetElement() == 0x10e3) \
-                            #  or (tag.GetGroup() == 0x0043 and tag.GetElement() == 0x1027):
-                        #  continue
-                    data = stf.ToStringPair(tag)
-                    stag = tag.PrintAsPipeSeparatedString()
-
-                    group = str(tag.GetGroup())
-                    field = str(tag.GetElement())
-
-                    tag_labels[stag] = data[0]
-
-                    if not group in data_dict.keys():
-                        data_dict[group] = {}
-
-                    if not(utils.VerifyInvalidPListCharacter(data[1])):
-                        data_dict[group][field] = utils.decode(data[1], encoding, 'replace')
-                    else:
-                        data_dict[group][field] = "Invalid Character"
 
 
             # -------------- To Create DICOM Thumbnail -----------
-
-
             try:
-                data = data_dict[str(0x028)][str(0x1050)]
+                data = data_dict['0028']['1050']
                 level = [float(value) for value in data.split('\\')][0]
-                data = data_dict[str(0x028)][str(0x1051)]
+                data = data_dict['0028']['1051']
                 window =  [float(value) for value in data.split('\\')][0]
             except(KeyError, ValueError):
                 level = None
@@ -228,7 +209,7 @@ class LoadDicom:
             #----------  Verify is DICOMDir -------------------------------
             is_dicom_dir = 1
             try: 
-                if (data_dict[str(0x002)][str(0x002)] != "1.2.840.10008.1.3.10"): #DICOMDIR
+                if (data_dict['0002']['0002'] != "1.2.840.10008.1.3.10"): #DICOMDIR
                     is_dicom_dir = 0
             except(KeyError):
                     is_dicom_dir = 0
