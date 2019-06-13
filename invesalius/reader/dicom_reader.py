@@ -163,15 +163,22 @@ class LoadDicom:
 
                 if not group in data_dict.keys():
                     data_dict[group] = {}
-                
+                    
+                if not group in field_dict.keys():    
+                    field_dict[group] = {}
+
+                #to save values
                 if not(utils.VerifyInvalidPListCharacter(res[1])):
                     data_dict[group][field] = utils.decode(res[1], encoding, 'namereplace')
                 else:
                     data_dict[group][field] = "Invalid Character"
-                
+               
+                #to save dicom destription tags
+                field_dict[group][field] = res[0]
+
                 pds.Next()
 
-
+            print(field_dict)
 
             # -------------- To Create DICOM Thumbnail -----------
             try:
@@ -219,21 +226,8 @@ class LoadDicom:
                 parser.SetDataImage(dict_file[self.filepath], self.filepath, thumbnail_path)
                 
                 dcm = dicom.Dicom()
-                #self.l.acquire()
                 dcm.SetParser(parser)
                 grouper.AddFile(dcm)
-
-                #self.l.release()
-        
-
-        #==========  used in test =======================================
-        #print dict_file
-        #main_dict = dict(
-        #                data  = dict_file,
-        #                labels  = tag_labels)
-        #print main_dict
-        #print "\n" 
-        #plistlib.writePlist(main_dict, ".//teste.plist")
 
 
 def yGetDicomGroups(directory, recursive=True, gui=True):
@@ -251,14 +245,7 @@ def yGetDicomGroups(directory, recursive=True, gui=True):
 
     counter = 0
     grouper = dicom_grouper.DicomPatientGrouper() 
-    #q = Queue.Queue()
-    #l = threading.Lock()
-    #threads = []
-    #for i in xrange(cpu_count()):
-    #    t = LoadDicom(grouper, q, l)
-    #    t.start()
-    #    threads.append(t)
-    # Retrieve only DICOM files, splited into groups
+
     if recursive:
         for dirpath, dirnames, filenames in os.walk(directory):
             for name in filenames:
@@ -274,16 +261,7 @@ def yGetDicomGroups(directory, recursive=True, gui=True):
             counter += 1
             if gui:
                 yield (counter,nfiles)
-            #q.put(filepath)
 
-    #for t in threads:
-    #    q.put(0)
-
-    #for t in threads:
-    #    t.join()
-
-    #TODO: Is this commented update necessary?
-    #grouper.Update()
     yield grouper.GetPatientsGroups()
 
 
@@ -324,7 +302,6 @@ class ProgressDicomReader:
 
         y = yGetDicomGroups(path, recursive)
         for value_progress in y:
-            print(">>>>", value_progress)
             if not self.running:
                 break
             if isinstance(value_progress, tuple):
