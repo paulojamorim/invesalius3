@@ -122,7 +122,6 @@ class DicomGroup:
         # Should be called when user selects this group
         # This list will be used to create the vtkImageData
         # (interpolated)
-
         if _has_win32api:
             filelist = [win32api.GetShortPathName(dicom.image.file)
                         for dicom in
@@ -227,27 +226,7 @@ class PatientGroup:
             #Getting the spacing in the Z axis
             group.UpdateZSpacing()
                     
-    def Update(self):
-        # Ideally, AddFile would be sufficient for splitting DICOM
-        # files into groups (series). However, this does not work for
-        # acquisitions / equipments and manufacturers.
 
-        # Although DICOM is a protocol, each one uses its fields in a
-        # different manner
-
-        # Check if Problem 1 occurs (n groups with 1 slice each)
-        is_there_problem_1 = False
-        utils.debug("n slice %d" % self.nslices)
-        utils.debug("len %d" % len(self.groups_dict))
-        if (self.nslices == len(self.groups_dict)) and\
-                (self.nslices > 1):
-            is_there_problem_1 = True
-
-        # Fix Problem 1
-        if is_there_problem_1:
-            utils.debug("Problem1")
-            self.groups_dict = self.FixProblem1(self.groups_dict)
-        
     def GetGroups(self):
         glist = self.groups_dict.values()
         glist = sorted(glist, key = lambda group:group.title,
@@ -256,86 +235,6 @@ class PatientGroup:
 
     def GetDicomSample(self):
         return self.dicom
-
-    def FixProblem1(self, dict):
-        """
-        Merge multiple DICOM groups in case Problem 1 (description
-        above) occurs.
-        
-        WARN: We've implemented an heuristic to try to solve
-        the problem. There is no scientific background and this aims
-        to be a workaround to exams which are not in conformance with
-        the DICOM protocol.
-        """
-        # Divide existing groups into 2 groups:
-        dict_final = {} # 1
-        # those containing "3D photos" and undefined
-        # orientation - these won't be changed (groups_lost).
-        
-        dict_to_change = {} # 2
-        # which can be re-grouped according to our heuristic
-
-        # split existing groups in these two types of group, based on
-        # orientation label
-
-        # 1st STEP: RE-GROUP
-        for group_key in dict:
-            # values used as key of the new dictionary
-            dicom = dict[group_key].GetList()[0]
-            orientation = dicom.image.orientation_label
-            study_id = dicom.acquisition.id_study
-            # if axial, coronal or sagittal 
-            if orientation in ORIENT_MAP:
-                group_key_s = (orientation, study_id)
-                # If this method was called, there is only one slice
-                # in this group (dicom)
-                dicom = dict[group_key].GetList()[0]
-                if group_key_s not in dict_to_change.keys():
-                    group = DicomGroup()
-                    group.AddSlice(dicom)
-                    dict_to_change[group_key_s] = group
-                else:
-                    group = dict_to_change[group_key_s]
-                    group.AddSlice(dicom)
-            else:
-                dict_final[group_key] = dict[group_key]
-
-        # group_counter will be used as key to DicomGroups created
-        # while checking differences
-        group_counter = 0
-        for group_key in dict_to_change:
-            # 2nd STEP: SORT
-            sorted_list = dict_to_change[group_key].GetHandSortedList()
-
-            # 3rd STEP: CHECK DIFFERENCES
-            axis = ORIENT_MAP[group_key[0]] # based on orientation
-            for index in range(len(sorted_list)-1):
-                current = sorted_list[index]
-                next = sorted_list[index+1]
-
-                pos_current = current.image.position[axis]
-                pos_next = current.image.position[axis]
-                spacing = current.image.spacing
-
-                if (pos_next - pos_current) <= (spacing[2] * 2):
-                    if group_counter in dict_final:
-                        dict_final[group_counter].AddSlice(current)
-                    else:
-                        group = DicomGroup()
-                        group.AddSlice(current)
-                        dict_final[group_counter] = group
-                        #Getting the spacing in the Z axis
-                        group.UpdateZSpacing()
-                else:
-                    group_counter +=1
-                    group = DicomGroup()
-                    group.AddSlice(current)
-                    dict_final[group_counter] = group
-                    #Getting the spacing in the Z axis
-                    group.UpdateZSpacing()
-                
-
-        return dict_final
 
 
 class DicomPatientGrouper:
@@ -365,9 +264,9 @@ class DicomPatientGrouper:
             patient = self.patients_dict[patient_key]
             patient.AddFile(dicom)
        
-    def Update(self):
-        for patient in self.patients_dict.values():
-            patient.Update()
+    #def Update(self):
+    #    for patient in self.patients_dict.values():
+    #        patient.Update()
     
     def GetPatientsGroups(self):
         """
