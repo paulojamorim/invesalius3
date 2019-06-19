@@ -216,9 +216,14 @@ class LoadDicom:
                     is_dicom_dir = 0
                                         
             if not(is_dicom_dir):
+
+
                 parser = dicom.Parser()
+                
                 parser.SetDataImage(dict_file[self.filepath], self.filepath, thumbnail_path)
                 
+                #parser.SetData(data_dict)
+
                 dcm = dicom.Dicom()
                 dcm.SetParser(parser)
                 grouper.AddFile(dcm)
