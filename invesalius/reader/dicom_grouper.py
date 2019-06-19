@@ -55,6 +55,9 @@ import sys
 
 import gdcm
 
+from invesalius.utils import Singleton
+from six import with_metaclass
+
 if sys.platform == 'win32':
     try:
         import win32api
@@ -69,6 +72,26 @@ import invesalius.constants as const
 
 
 ORIENT_MAP = {"SAGITTAL":0, "CORONAL":1, "AXIAL":2, "OBLIQUE":2}
+
+class DicomData(with_metaclass(Singleton, object)):
+
+    def __init__(self): 
+        self.data = []
+
+    def Append(self, item):
+        self.data.append(item)
+
+    def GetData(self):
+        return self.data
+
+    def SortData(self):
+        pass
+
+    def CleanData(self):
+        pass
+
+
+
 
 
 class DicomGroup:

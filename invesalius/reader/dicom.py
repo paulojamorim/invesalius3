@@ -30,46 +30,48 @@ import invesalius.constants as const
 # one pair per  time. This pair is determined by WL_PRESET
 # constant or might be set by the user when calling GetWindowWidth
 # and GetWindowLevel.
+
+
 WL_PRESET = 0 # index of selected window and level tuple (if multiple)
 WL_MULT = 0 # allow selection of multiple window and level tuples if 1
 
-# dictionary to be used by module functions
-info = {}
-# keys to be used to generate dictionary info
-INFO_KEYS = \
-['AcquisitionDate',
- 'AcquisitionGantryTilt',
- 'AcquisitionModality',
- 'AcquisitionNumber',
- 'AcquisionSequence',
- 'AcquisitionTime',
- 'EquipmentKVP',
- 'EquipmentInstitutionName',
- 'EquipmentManufacturer',
- 'EquipmentXRayTubeCurrent',
- 'ImageColumnOrientation',
- 'ImageConvolutionKernel',
- 'ImageDataType',
- 'ImageLocation',
- 'ImageNumber',
- 'ImagePixelSpacingX',
- 'ImagePixelSpacingY',
- 'ImagePosition',
- 'ImageRowOrientation',
- 'ImageSamplesPerPixel',
- 'ImageSeriesNumber',
- 'ImageThickness',
- 'ImageWindowLevel',
- 'ImageWindowWidth',
- 'PatientAge',
- 'PatientBirthDate',
- 'PatientGender',
- 'PatientName',
- 'PhysicianName',
- 'StudyID',
- 'StudyInstanceUID',
- 'StudyAdmittingDiagnosis',
- ]
+## dictionary to be used by module functions
+#info = {}
+## keys to be used to generate dictionary info
+#INFO_KEYS = \
+#['AcquisitionDate',
+# 'AcquisitionGantryTilt',
+# 'AcquisitionModality',
+# 'AcquisitionNumber',
+# 'AcquisionSequence',
+# 'AcquisitionTime',
+# 'EquipmentKVP',
+# 'EquipmentInstitutionName',
+# 'EquipmentManufacturer',
+# 'EquipmentXRayTubeCurrent',
+# 'ImageColumnOrientation',
+# 'ImageConvolutionKernel',
+# 'ImageDataType',
+# 'ImageLocation',
+# 'ImageNumber',
+# 'ImagePixelSpacingX',
+# 'ImagePixelSpacingY',
+# 'ImagePosition',
+# 'ImageRowOrientation',
+# 'ImageSamplesPerPixel',
+# 'ImageSeriesNumber',
+# 'ImageThickness',
+# 'ImageWindowLevel',
+# 'ImageWindowWidth',
+# 'PatientAge',
+# 'PatientBirthDate',
+# 'PatientGender',
+# 'PatientName',
+# 'PhysicianName',
+# 'StudyID',
+# 'StudyInstanceUID',
+# 'StudyAdmittingDiagnosis',
+# ]
 
 class Parser():
     """
@@ -92,14 +94,16 @@ class Parser():
         self.encoding = ""
         self.filepath = ""
 
-    def SetDataImage(self, data_image, filename, thumbnail_path):
-        self.data_image = data_image
-        self.filename = self.filepath = filename    
-        self.thumbnail_path = thumbnail_path
-
+    #def SetDataImage(self, data_image, filename, thumbnail_path):
+    #    self.data_image = data_image
+    #    self.filename = self.filepath = filename    
+    #    self.thumbnail_path = thumbnail_path
 
     def SetData(self, data):
         self.data = data
+
+    def GetData(self):
+        return self.data
 
     def __format_time(self,value):
         sp1 = value.split(".")
@@ -952,187 +956,187 @@ class Parser():
 
 
 
-def BuildDictionary(filename):
-    """
-    Given a DICOM filename, generate dictionary containing parsed
-    information.
-    """
-
-    info = {}
-
-    parser = Parser()
-    parser.SetFileName(filename)
-
-    # Next statement will fill up dictionary info, parsing the DICOM
-    # file, given keys in info_keys list. Example:
-    # info["AcquisitionDate"] = dicom.GetAcquisitionDate()
-    for key in INFO_KEYS:
-        info[key] = eval("parser.Get"+key+"()")
-
-    return info
-
-def LoadDictionary(filename):
-    """
-    Given a binary file (containing a dictionary), return dictionary
-    containing parsed DICOM information.
-    """
-    import pickle
-
-    fp = open(filename, "rb")
-    info = pickle.load(fp)
-    fp.close()
-    return info
-
-
-def DumpDictionary(filename, dictionary=info):
-    """
-    Given a filename and a dictionary (optional), write DICOM
-    information to file in binary form.
-    """
-    import pickle
-
-    fp = open(filename, "wb")
-    pickle.dump(info, fp)
-    fp.close()
-
-if __name__ == "__main__":
-
-    # Example of how to use Parser
-    fail_count = 0
-    total = 48
-
-    for i in range(1,total+1):
-        filename = "..//data//"+str(i)+".dcm"
-
-        parser = Parser()
-        if parser.SetFileName(filename):
-            print("p:", parser.GetPatientName())
-            print("l:", parser.GetImageLocation())
-            print("o:", parser.GetImagePatientOrientation())
-            print("t:", parser.GetImageThickness())
-            print("s:", parser.GetPixelSpacing())
-            print("x:", parser.GetDimensionX())
-            print("y:", parser.GetDimensionY())
-            print("z:", parser.GetDimensionZ())
-        else:
-            print("--------------------------------------------------")
-            total-=1
-            fail_count+=1
-
-    print("\nREPORT:")
-    print("failed: ", fail_count)
-    print("sucess: ", total)
-
-    # Example of how to use auxiliary functions
-    total = 38
-    for i in range(1,total+1):
-        if (i==8) or (i==9) or (i==13):
-            pass
-        else:
-            filename = "..//data//"+str(i)+".dcm"
-            info = BuildDictionary(filename)
-            #print info
-
-
-
-
-
-class Dicom(object):
-    def __init__(self):
-        pass
-
-    def SetParser(self, parser):
-        self.parser = parser
-
-        self.LoadImageInfo()
-        self.LoadPatientInfo()
-        self.LoadAcquisitionInfo()
-        #self.LoadStudyInfo()
-
-    def LoadImageInfo(self):
-        self.image = Image()
-        self.image.SetParser(self.parser)
-
-    def LoadPatientInfo(self):
-        self.patient = Patient()
-        self.patient.SetParser(self.parser)
-
-    def LoadAcquisitionInfo(self):
-        self.acquisition = Acquisition()
-        self.acquisition.SetParser(self.parser)
-
-
-
-
-
-class Patient(object):
-    def __init__(self):
-        pass
-
-    def SetParser(self, parser):
-        self.name = parser.GetPatientName()
-        self.id = parser.GetPatientID()
-        self.age = parser.GetPatientAge()
-        self.birthdate = parser.GetPatientBirthDate()
-        self.gender = parser.GetPatientGender()
-        self.physician = parser.GetPhysicianReferringName()
-
-
-class Acquisition(object):
-
-    def __init__(self):
-        pass
-
-    def SetParser(self, parser):
-        self.patient_orientation = parser.GetImagePatientOrientation()
-        self.tilt = parser.GetAcquisitionGantryTilt()
-        self.id_study = parser.GetStudyID()
-        self.modality = parser.GetAcquisitionModality()
-        self.study_description = parser.GetStudyDescription()
-        self.acquisition_date = parser.GetAcquisitionDate()
-        self.institution = parser.GetInstitutionName()
-        self.date = parser.GetAcquisitionDate()
-        self.accession_number = parser.GetAccessionNumber()
-        self.series_description = parser.GetSeriesDescription()
-        self.time = parser.GetAcquisitionTime()
-        self.protocol_name = parser.GetProtocolName()
-        self.serie_number = parser.GetSerieNumber()
-        self.sop_class_uid = parser.GetSOPClassUID()
-
-
-class Image(object):
-
-    def __init__(self):
-        pass
-
-    def SetParser(self, parser):
-        self.level = parser.GetImageWindowLevel()
-        self.window = parser.GetImageWindowWidth()
-
-        self.position = parser.GetImagePosition()
-        if not (self.position):
-            self.position = [1, 1, 1]
-
-        self.number = parser.GetImageNumber()
-        self.spacing = spacing = parser.GetPixelSpacing()
-        self.orientation_label = parser.GetImageOrientationLabel()
-        self.file = parser.filename
-        self.time = parser.GetImageTime()
-        self.type = parser.GetImageType()
-        self.size = (parser.GetDimensionX(), parser.GetDimensionY())
-        #self.imagedata = parser.GetImageData()
-        self.bits_allocad = parser._GetBitsAllocated()
-        self.thumbnail_path = parser.thumbnail_path
-
-        self.number_of_frames = parser.GetNumberOfFrames()
-
-        if (parser.GetImageThickness()):
-            try:
-                spacing.append(parser.GetImageThickness())
-            except(AttributeError):
-                spacing = [1, 1, 1]
-        else:
-            try:
-                spacing.append(1.5)
-            except(AttributeError):
-                spacing = [1, 1, 1]
+#def BuildDictionary(filename):
+#    """
+#    Given a DICOM filename, generate dictionary containing parsed
+#    information.
+#    """
+#
+#    info = {}
+#
+#    parser = Parser()
+#    parser.SetFileName(filename)
+#
+#    # Next statement will fill up dictionary info, parsing the DICOM
+#    # file, given keys in info_keys list. Example:
+#    # info["AcquisitionDate"] = dicom.GetAcquisitionDate()
+#    for key in INFO_KEYS:
+#        info[key] = eval("parser.Get"+key+"()")
+#
+#    return info
+#
+#def LoadDictionary(filename):
+#    """
+#    Given a binary file (containing a dictionary), return dictionary
+#    containing parsed DICOM information.
+#    """
+#    import pickle
+#
+#    fp = open(filename, "rb")
+#    info = pickle.load(fp)
+#    fp.close()
+#    return info
+#
+#
+#def DumpDictionary(filename, dictionary=info):
+#    """
+#    Given a filename and a dictionary (optional), write DICOM
+#    information to file in binary form.
+#    """
+#    import pickle
+#
+#    fp = open(filename, "wb")
+#    pickle.dump(info, fp)
+#    fp.close()
+#
+#if __name__ == "__main__":
+#
+#    # Example of how to use Parser
+#    fail_count = 0
+#    total = 48
+#
+#    for i in range(1,total+1):
+#        filename = "..//data//"+str(i)+".dcm"
+#
+#        parser = Parser()
+#        if parser.SetFileName(filename):
+#            print("p:", parser.GetPatientName())
+#            print("l:", parser.GetImageLocation())
+#            print("o:", parser.GetImagePatientOrientation())
+#            print("t:", parser.GetImageThickness())
+#            print("s:", parser.GetPixelSpacing())
+#            print("x:", parser.GetDimensionX())
+#            print("y:", parser.GetDimensionY())
+#            print("z:", parser.GetDimensionZ())
+#        else:
+#            print("--------------------------------------------------")
+#            total-=1
+#            fail_count+=1
+#
+#    print("\nREPORT:")
+#    print("failed: ", fail_count)
+#    print("sucess: ", total)
+#
+#    # Example of how to use auxiliary functions
+#    total = 38
+#    for i in range(1,total+1):
+#        if (i==8) or (i==9) or (i==13):
+#            pass
+#        else:
+#            filename = "..//data//"+str(i)+".dcm"
+#            info = BuildDictionary(filename)
+#            #print info
+#
+#
+#
+#
+#
+#class Dicom(object):
+#    def __init__(self):
+#        pass
+#
+#    def SetParser(self, parser):
+#        self.parser = parser
+#
+#        self.LoadImageInfo()
+#        self.LoadPatientInfo()
+#        self.LoadAcquisitionInfo()
+#        #self.LoadStudyInfo()
+#
+#    def LoadImageInfo(self):
+#        self.image = Image()
+#        self.image.SetParser(self.parser)
+#
+#    def LoadPatientInfo(self):
+#        self.patient = Patient()
+#        self.patient.SetParser(self.parser)
+#
+#    def LoadAcquisitionInfo(self):
+#        self.acquisition = Acquisition()
+#        self.acquisition.SetParser(self.parser)
+#
+#
+#
+#
+#
+#class Patient(object):
+#    def __init__(self):
+#        pass
+#
+#    def SetParser(self, parser):
+#        self.name = parser.GetPatientName()
+#        self.id = parser.GetPatientID()
+#        self.age = parser.GetPatientAge()
+#        self.birthdate = parser.GetPatientBirthDate()
+#        self.gender = parser.GetPatientGender()
+#        self.physician = parser.GetPhysicianReferringName()
+#
+#
+#class Acquisition(object):
+#
+#    def __init__(self):
+#        pass
+#
+#    def SetParser(self, parser):
+#        self.patient_orientation = parser.GetImagePatientOrientation()
+#        self.tilt = parser.GetAcquisitionGantryTilt()
+#        self.id_study = parser.GetStudyID()
+#        self.modality = parser.GetAcquisitionModality()
+#        self.study_description = parser.GetStudyDescription()
+#        self.acquisition_date = parser.GetAcquisitionDate()
+#        self.institution = parser.GetInstitutionName()
+#        self.date = parser.GetAcquisitionDate()
+#        self.accession_number = parser.GetAccessionNumber()
+#        self.series_description = parser.GetSeriesDescription()
+#        self.time = parser.GetAcquisitionTime()
+#        self.protocol_name = parser.GetProtocolName()
+#        self.serie_number = parser.GetSerieNumber()
+#        self.sop_class_uid = parser.GetSOPClassUID()
+#
+#
+#class Image(object):
+#
+#    def __init__(self):
+#        pass
+#
+#    def SetParser(self, parser):
+#        self.level = parser.GetImageWindowLevel()
+#        self.window = parser.GetImageWindowWidth()
+#
+#        self.position = parser.GetImagePosition()
+#        if not (self.position):
+#            self.position = [1, 1, 1]
+#
+#        self.number = parser.GetImageNumber()
+#        self.spacing = spacing = parser.GetPixelSpacing()
+#        self.orientation_label = parser.GetImageOrientationLabel()
+#        self.file = parser.filename
+#        self.time = parser.GetImageTime()
+#        self.type = parser.GetImageType()
+#        self.size = (parser.GetDimensionX(), parser.GetDimensionY())
+#        #self.imagedata = parser.GetImageData()
+#        self.bits_allocad = parser._GetBitsAllocated()
+#        self.thumbnail_path = parser.thumbnail_path
+#
+#        self.number_of_frames = parser.GetNumberOfFrames()
+#
+#        if (parser.GetImageThickness()):
+#            try:
+#                spacing.append(parser.GetImageThickness())
+#            except(AttributeError):
+#                spacing = [1, 1, 1]
+#        else:
+#            try:
+#                spacing.append(1.5)
+#            except(AttributeError):
+#                spacing = [1, 1, 1]

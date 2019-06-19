@@ -37,7 +37,7 @@ import invesalius.utils as utils
 from invesalius import inv_paths
 from invesalius.data import imagedata_utils
 
-import plistlib
+#import plistlib
 
 if sys.platform == 'win32':
     try:
@@ -48,50 +48,52 @@ if sys.platform == 'win32':
 else:
     _has_win32api = False
 
-def ReadDicomGroup(dir_):
+#def ReadDicomGroup(dir_):
+#
+#    patient_group = GetDicomGroups(dir_)
+#    if len(patient_group) > 0:
+#        filelist, dicom, zspacing = SelectLargerDicomGroup(patient_group)
+#        filelist = SortFiles(filelist, dicom)
+#        size = dicom.image.size
+#        bits = dicom.image.bits_allocad
+#
+#        imagedata = CreateImageData(filelist, zspacing, size, bits)
+#        session.Session().project_status = const.NEW_PROJECT
+#        return imagedata, dicom
+#    else:
+#        return False
+#
+#
+#def SelectLargerDicomGroup(patient_group):
+#    maxslices = 0
+#    for patient in patient_group:
+#        group_list = patient.GetGroups()
+#        for group in group_list:
+#            if group.nslices > maxslices:
+#                maxslices = group.nslices
+#                larger_group = group
+#
+#    return larger_group
+#
+#def SortFiles(filelist, dicom):
+#    # Sort slices
+#    # FIXME: Coronal Crash. necessary verify
+#    if (dicom.image.orientation_label != "CORONAL"):
+#        ##Organize reversed image
+#        sorter = gdcm.IPPSorter()
+#        sorter.SetComputeZSpacing(True)
+#        sorter.SetZSpacingTolerance(1e-10)
+#        sorter.Sort(filelist)
+#
+#        #Getting organized image
+#        filelist = sorter.GetFilenames()
+#
+#    return filelist
+#
+#main_dict = {}
 
-    patient_group = GetDicomGroups(dir_)
-    if len(patient_group) > 0:
-        filelist, dicom, zspacing = SelectLargerDicomGroup(patient_group)
-        filelist = SortFiles(filelist, dicom)
-        size = dicom.image.size
-        bits = dicom.image.bits_allocad
-
-        imagedata = CreateImageData(filelist, zspacing, size, bits)
-        session.Session().project_status = const.NEW_PROJECT
-        return imagedata, dicom
-    else:
-        return False
 
 
-def SelectLargerDicomGroup(patient_group):
-    maxslices = 0
-    for patient in patient_group:
-        group_list = patient.GetGroups()
-        for group in group_list:
-            if group.nslices > maxslices:
-                maxslices = group.nslices
-                larger_group = group
-
-    return larger_group
-
-def SortFiles(filelist, dicom):
-    # Sort slices
-    # FIXME: Coronal Crash. necessary verify
-    if (dicom.image.orientation_label != "CORONAL"):
-        ##Organize reversed image
-        sorter = gdcm.IPPSorter()
-        sorter.SetComputeZSpacing(True)
-        sorter.SetZSpacingTolerance(1e-10)
-        sorter.Sort(filelist)
-
-        #Getting organized image
-        filelist = sorter.GetFilenames()
-
-    return filelist
-
-main_dict = {}
-dict_file = {}
 
 class LoadDicom:
     def __init__(self, grouper, filepath):
@@ -200,13 +202,17 @@ class LoadDicom:
                 _type = orientation.GetType(direc_cosines)
             label = orientation.GetLabel(_type)
 
- 
-            # ----------   Refactory --------------------------------------
             data_dict['invesalius'] = {'orientation_label' : label}
-
-            # -------------------------------------------------------------
-            dict_file[self.filepath] = data_dict
             
+           
+            # ----------   Refactory --------------------------------------
+            
+            #print(data_dict)
+            ## -------------------------------------------------------------
+            #dict_file[self.filepath] = data_dict
+            #print("-----------------------------------------\n")
+            #print(dict_file)
+
             #----------  Verify is DICOMDir -------------------------------
             is_dicom_dir = 1
             try: 
@@ -217,16 +223,16 @@ class LoadDicom:
                                         
             if not(is_dicom_dir):
 
-
-                parser = dicom.Parser()
-                
-                parser.SetDataImage(dict_file[self.filepath], self.filepath, thumbnail_path)
-                
+                dcm_data = dicom_grouper.DicomData()
+                dcm_data.Append([self.filepath, thumbnail_path, data_dict])
+            
+                #parser = dicom.Parser()
                 #parser.SetData(data_dict)
-
-                dcm = dicom.Dicom()
-                dcm.SetParser(parser)
-                grouper.AddFile(dcm)
+                #parser.SetDataImage(dict_file[self.filepath], self.filepath, thumbnail_path)
+                
+                #dcm = dicom.Dicom()
+                #dcm.SetParser(parser)
+                #grouper.AddFile(dcm)
 
 
 def yGetDicomGroups(directory, recursive=True, gui=True):
