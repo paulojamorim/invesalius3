@@ -75,8 +75,19 @@ ORIENT_MAP = {"SAGITTAL":0, "CORONAL":1, "AXIAL":2, "OBLIQUE":2}
 class SorterDicom(with_metaclass(Singleton, object)):
 
     def __init__(self): 
+        """
+            self.groups_dict is a dictionary:
+            
+            ex:
+
+            {('patient_name'): -> patient
+                {('patient_name', 'study id', 'serie number', 'orientation label'): -> serie
+                    [{'tag group':{'tag':'value', 'tag':'value'}.., 
+                     {'tag group':{'tag':'value', 'tag':'value'}..}..]..}..}
+        """
+        
         self.groups_dict = {} # group_key: DicomGroup
-    
+
     def Append(self, item):
        
         dicom = dcm.Parser()
@@ -87,20 +98,15 @@ class SorterDicom(with_metaclass(Singleton, object)):
         serie_number = dicom.GetSerieNumber()
         orientation_label = dicom.GetOrientationLabelByInVesalius()
 
-        group_key = str((patient_name, study_id, serie_number,
+        series_key = str((patient_name, study_id, serie_number,
                      orientation_label))#, index)
-        
-        #if not self.dicom:
-        #    self.dicom = dicom
 
-        #self.nslices += 1
-        
-        # Does this group exist? Best case ;)
-        if group_key not in self.groups_dict.keys():
-            self.groups_dict[group_key] = []
-            self.groups_dict[group_key].append(item)
+        if patient_name not in self.groups_dict.keys():
+            self.groups_dict[patient_name] = {}
+            self.groups_dict[patient_name][series_key] = []
+            self.groups_dict[patient_name][series_key].append(item)
         else:
-            self.groups_dict[group_key].append(item)
+            self.groups_dict[patient_name][series_key].append(item)
 
     def GetData(self):
         return self.groups_dict
@@ -110,28 +116,35 @@ class SorterDicom(with_metaclass(Singleton, object)):
         #sort by dictionary key
         #sorted(a['(teste)'], key=lambda i: i['path'])                                                                                                                                   
         #in each group
-        for gd in self.groups_dict.keys():
+        for patient in self.groups_dict.keys():
+
+            for serie in self.groups_dict[patient].keys():
         
-            items = self.groups_dict[gd]
+                items = self.groups_dict[patient][serie]
 
-            #get all dicom patches from dictionary
-            dcm_paths = [i['invesalius']['dicom_path'] for i in items]
-          
-            #FIX: Remove IPPSorter if breast CT and CORONAL orientation
-            sorter = gdcm.IPPSorter()
-            sorter.SetComputeZSpacing(True)
-            sorter.SetZSpacingTolerance(1e-10)
-            sorter.Sort(dcm_paths)
-           
-            dcm_paths = sorter.GetFilenames()
-
-            if dcm_paths:
-                sorted_items = []
-            
-                for dcm in dcm_paths:
-                   sorted_items.append(self.GetItem(items, dcm))
+                #get all dicom patches from dictionary
+                dcm_paths = [i['invesalius']['dicom_path'] for i in items]
+              
+                #FIX: Remove IPPSorter if breast CT and CORONAL orientation
+                sorter = gdcm.IPPSorter()
+                sorter.SetComputeZSpacing(True)
+                sorter.SetZSpacingTolerance(1e-10)
                 
-                self.groups_dict[gd] = sorted_items
+                #try:
+                #    sorter.Sort([utils.encode(i, const.FS_ENCODE) for i in dcm_paths])
+                #except TypeError:
+                
+                sorter.Sort(dcm_paths)
+                
+                dcm_paths = sorter.GetFilenames()
+
+                if dcm_paths:
+                    sorted_items = []
+                
+                    for dcm in dcm_paths:
+                       sorted_items.append(self.GetItem(items, dcm))
+                    
+                    self.groups_dict[patient][serie] = sorted_items
 
 
     def GetItem(self, items, dcm_path):

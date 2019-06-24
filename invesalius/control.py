@@ -423,10 +423,6 @@ class Controller():
             #Publisher.sendMessage("Show import panel in invesalius.gui.frame") as frame
 
     def LoadImportBitmapPanel(self, data):
-        #if patient_series and isinstance(patient_series, list):
-            #Publisher.sendMessage("Load import panel", patient_series)
-            #first_patient = patient_series[0]
-            #Publisher.sendMessage("Load bitmap preview", first_patient)
         if  data:
             Publisher.sendMessage("Load import bitmap panel", data=data)
             return True
@@ -437,7 +433,7 @@ class Controller():
 
     def LoadImportPanel(self, patient_series):
         print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",patient_series)
-        if patient_series and isinstance(patient_series, list):
+        if patient_series and isinstance(patient_series, dict):
             Publisher.sendMessage("Load import panel", dicom_groups=patient_series)
             first_patient = patient_series[0]
             Publisher.sendMessage("Load dicom preview", patient=first_patient)

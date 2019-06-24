@@ -37,8 +37,6 @@ import invesalius.utils as utils
 from invesalius import inv_paths
 from invesalius.data import imagedata_utils
 
-#import plistlib
-
 if sys.platform == 'win32':
     try:
         import win32api
@@ -47,53 +45,6 @@ if sys.platform == 'win32':
         _has_win32api = False
 else:
     _has_win32api = False
-
-#def ReadDicomGroup(dir_):
-#
-#    patient_group = GetDicomGroups(dir_)
-#    if len(patient_group) > 0:
-#        filelist, dicom, zspacing = SelectLargerDicomGroup(patient_group)
-#        filelist = SortFiles(filelist, dicom)
-#        size = dicom.image.size
-#        bits = dicom.image.bits_allocad
-#
-#        imagedata = CreateImageData(filelist, zspacing, size, bits)
-#        session.Session().project_status = const.NEW_PROJECT
-#        return imagedata, dicom
-#    else:
-#        return False
-#
-#
-#def SelectLargerDicomGroup(patient_group):
-#    maxslices = 0
-#    for patient in patient_group:
-#        group_list = patient.GetGroups()
-#        for group in group_list:
-#            if group.nslices > maxslices:
-#                maxslices = group.nslices
-#                larger_group = group
-#
-#    return larger_group
-#
-#def SortFiles(filelist, dicom):
-#    # Sort slices
-#    # FIXME: Coronal Crash. necessary verify
-#    if (dicom.image.orientation_label != "CORONAL"):
-#        ##Organize reversed image
-#        sorter = gdcm.IPPSorter()
-#        sorter.SetComputeZSpacing(True)
-#        sorter.SetZSpacingTolerance(1e-10)
-#        sorter.Sort(filelist)
-#
-#        #Getting organized image
-#        filelist = sorter.GetFilenames()
-#
-#    return filelist
-#
-#main_dict = {}
-
-
-
 
 class LoadDicom:
     def __init__(self, grouper, filepath):
@@ -204,8 +155,16 @@ class LoadDicom:
             
             data_dict['invesalius'] = {}
             data_dict['invesalius']['orientation_label'] = label
-            data_dict['invesalius']['thumbnail_path'] = thumbnail_path
-            data_dict['invesalius']['dicom_path'] = self.filepath
+
+            if _has_win32api:
+                data_dict['invesalius']['thumbnail_path'] =\
+                        win32api.GetShortPathName(thumbnail_path)
+                
+                data_dict['invesalius']['dicom_path'] =\
+                        win32api.GetShortPathName(self.filepath)
+            else:
+                data_dict['invesalius']['thumbnail_path'] = thumbnail_path
+                data_dict['invesalius']['dicom_path'] = self.filepath
 
             #----------  Verify is DICOMDir -------------------------------
             is_dicom_dir = 1
@@ -220,14 +179,6 @@ class LoadDicom:
                 dcm_data = dicom_grouper.SorterDicom()
                 dcm_data.Append(data_dict)
             
-                #parser = dicom.Parser()
-                #parser.SetData(data_dict)
-                #parser.SetDataImage(dict_file[self.filepath], self.filepath, thumbnail_path)
-                
-                #dcm = dicom.Dicom()
-                #dcm.SetParser(parser)
-                #grouper.AddFile(dcm)
-
 
 def yGetDicomGroups(directory, recursive=True, gui=True):
     """
@@ -309,7 +260,10 @@ class ProgressDicomReader:
             else:
                 #after load all DICOM, apply sorter in all series
                 dicom_grouper.SorterDicom().SortData()
-                
+                import json
+                with open('data.json', 'w') as outfile:  
+                    json.dump(dicom_grouper.SorterDicom().GetData(), outfile)
+                 
                 self.EndLoadFile(dicom_grouper.SorterDicom().GetData())
                 
         self.UpdateLoadFileProgress(None)
