@@ -201,17 +201,11 @@ class LoadDicom:
             except TypeError:
                 _type = orientation.GetType(direc_cosines)
             label = orientation.GetLabel(_type)
-
-            data_dict['invesalius'] = {'orientation_label' : label}
             
-           
-            # ----------   Refactory --------------------------------------
-            
-            #print(data_dict)
-            ## -------------------------------------------------------------
-            #dict_file[self.filepath] = data_dict
-            #print("-----------------------------------------\n")
-            #print(dict_file)
+            data_dict['invesalius'] = {}
+            data_dict['invesalius']['orientation_label'] = label
+            data_dict['invesalius']['thumbnail_path'] = thumbnail_path
+            data_dict['invesalius']['dicom_path'] = self.filepath
 
             #----------  Verify is DICOMDir -------------------------------
             is_dicom_dir = 1
@@ -223,8 +217,8 @@ class LoadDicom:
                                         
             if not(is_dicom_dir):
 
-                dcm_data = dicom_grouper.DicomData()
-                dcm_data.Append([self.filepath, thumbnail_path, data_dict])
+                dcm_data = dicom_grouper.SorterDicom()
+                dcm_data.Append(data_dict)
             
                 #parser = dicom.Parser()
                 #parser.SetData(data_dict)
@@ -305,14 +299,19 @@ class ProgressDicomReader:
             ow = vtk.vtkOutputWindow()
             ow.SetInstance(fow)
 
-        y = yGetDicomGroups(path, recursive)
+        y = yGetDicomGroups(path, recursive) 
+
         for value_progress in y:
             if not self.running:
                 break
             if isinstance(value_progress, tuple):
                 self.UpdateLoadFileProgress(value_progress)
             else:
-                self.EndLoadFile(value_progress)
+                #after load all DICOM, apply sorter in all series
+                dicom_grouper.SorterDicom().SortData()
+                
+                self.EndLoadFile(dicom_grouper.SorterDicom().GetData())
+                
         self.UpdateLoadFileProgress(None)
 
         #Is necessary in the case user cancel

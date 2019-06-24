@@ -52,7 +52,6 @@
 # were swapped
 
 import sys
-
 import gdcm
 
 from invesalius.utils import Singleton
@@ -69,29 +68,107 @@ else:
 
 import invesalius.utils as utils
 import invesalius.constants as const
-
+import invesalius.reader.dicom as dcm
 
 ORIENT_MAP = {"SAGITTAL":0, "CORONAL":1, "AXIAL":2, "OBLIQUE":2}
 
-class DicomData(with_metaclass(Singleton, object)):
+class SorterDicom(with_metaclass(Singleton, object)):
 
     def __init__(self): 
-        self.data = []
-
+        self.groups_dict = {} # group_key: DicomGroup
+    
     def Append(self, item):
-        self.data.append(item)
+       
+        dicom = dcm.Parser()
+        dicom.SetData(item)
+
+        patient_name = dicom.GetPatientName()
+        study_id = dicom.GetStudyID()
+        serie_number = dicom.GetSerieNumber()
+        orientation_label = dicom.GetOrientationLabelByInVesalius()
+
+        group_key = str((patient_name, study_id, serie_number,
+                     orientation_label))#, index)
+        
+        #if not self.dicom:
+        #    self.dicom = dicom
+
+        #self.nslices += 1
+        
+        # Does this group exist? Best case ;)
+        if group_key not in self.groups_dict.keys():
+            self.groups_dict[group_key] = []
+            self.groups_dict[group_key].append(item)
+        else:
+            self.groups_dict[group_key].append(item)
 
     def GetData(self):
-        return self.data
+        return self.groups_dict
 
     def SortData(self):
-        pass
+
+        #sort by dictionary key
+        #sorted(a['(teste)'], key=lambda i: i['path'])                                                                                                                                   
+        #in each group
+        for gd in self.groups_dict.keys():
+        
+            items = self.groups_dict[gd]
+
+            #get all dicom patches from dictionary
+            dcm_paths = [i['invesalius']['dicom_path'] for i in items]
+          
+            #FIX: Remove IPPSorter if breast CT and CORONAL orientation
+            sorter = gdcm.IPPSorter()
+            sorter.SetComputeZSpacing(True)
+            sorter.SetZSpacingTolerance(1e-10)
+            sorter.Sort(dcm_paths)
+           
+            dcm_paths = sorter.GetFilenames()
+
+            if dcm_paths:
+                sorted_items = []
+            
+                for dcm in dcm_paths:
+                   sorted_items.append(self.GetItem(items, dcm))
+                
+                self.groups_dict[gd] = sorted_items
+
+
+    def GetItem(self, items, dcm_path):
+        item = [group for group in items\
+                if group['invesalius']['dicom_path'] == dcm_path]
+        
+        if item:
+            return item[0] 
+        else:
+            return None
+
 
     def CleanData(self):
         pass
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+#------------------------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------------------------
 
 
 class DicomGroup:
@@ -201,6 +278,17 @@ class DicomGroup:
         dicom = self.GetHandSortedList()[size//2]
         return dicom
             
+
+
+
+
+
+
+
+
+
+
+
 class PatientGroup:
     def __init__(self):
         # key:

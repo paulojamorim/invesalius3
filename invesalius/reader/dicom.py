@@ -927,11 +927,18 @@ class Parser():
         except(KeyError):
             return 'ISO_IR_100'
 
+    def GetOrientationLabelByInVesalius(self):
+        """
+        Return orientation label calculated by InVesalius (GDCM).
+        Note: This is not in any DICOM tag.
+        """
+        return self.data['invesalius']['orientation_label']
 
+    def GetThumbnailPathByInVesalius(self):
+        return self.data['invesalius']['thumbnail_path']
 
-
-
-
+    def GetThumbnailPathByInVesalius(self):
+        return self.data['invesalius']['dicom_path']
 
 
 

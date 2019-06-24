@@ -436,6 +436,7 @@ class Controller():
 
 
     def LoadImportPanel(self, patient_series):
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",patient_series)
         if patient_series and isinstance(patient_series, list):
             Publisher.sendMessage("Load import panel", dicom_groups=patient_series)
             first_patient = patient_series[0]
@@ -453,6 +454,10 @@ class Controller():
 
     def ImportMedicalImages(self, directory, gui=True):
         patients_groups = dcm.GetDicomGroups(directory)
+
+        print(patients_groups)
+
+
         name = directory.rpartition('\\')[-1].split('.')
         print("patients: ", patients_groups)
 
