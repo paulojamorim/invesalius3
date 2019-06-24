@@ -147,6 +147,18 @@ class SorterDicom(with_metaclass(Singleton, object)):
                     self.groups_dict[patient][serie] = sorted_items
 
 
+    def GetNumberOfSlicesByPatient(self, patient):
+        n = 0
+        for serie in self.groups_dict[patient].keys():
+            n += len(self.groups_dict[patient][serie])
+        return n
+
+
+    def GetNumberOfSlicesBySerie(self, patient, serie):
+        n = len(self.groups_dict[patient][serie])
+        return n
+
+
     def GetItem(self, items, dcm_path):
         item = [group for group in items\
                 if group['invesalius']['dicom_path'] == dcm_path]

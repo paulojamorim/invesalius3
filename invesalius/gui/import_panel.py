@@ -24,7 +24,8 @@ import wx.lib.splitter as spl
 import invesalius.constants as const
 import invesalius.gui.dialogs as dlg
 import invesalius.gui.dicom_preview_panel as dpp
-import invesalius.reader.dicom_grouper as dcm
+import invesalius.reader.dicom_grouper as dcm_grouper
+import invesalius.reader.dicom as dcm_parser
 
 myEVT_SELECT_SERIE = wx.NewEventType()
 EVT_SELECT_SERIE = wx.PyEventBinder(myEVT_SELECT_SERIE, 1)
@@ -258,14 +259,26 @@ class TextPanel(wx.Panel):
         tree = self.tree
 
         first = 0
-        for patient in patient_list:
-            if not isinstance(patient, dcm.PatientGroup):
-                return None
-            ngroups = patient.ngroups
-            dicom = patient.GetDicomSample()
-            title = dicom.patient.name + " (%d series)"%(ngroups)
-            date_time = "%s %s"%(dicom.acquisition.date,
-                                 dicom.acquisition.time)
+        for patient in patient_list.keys():
+            #if not isinstance(patient, dcm.PatientGroup):
+            #    return None
+            
+            #get numbers of series
+            nseries = len(patient_list[patient].keys())
+
+            #get first serie from patient 
+            first_serie = list(patient_list[patient].keys())[0]
+            
+            #get first slice from first serie
+            first_dcm = patient_list[patient][first_serie]
+            
+            dcm = dcm_parser.Parser()
+            dcm.SetData(first_dcm[0])
+
+            title = patient + " (%d series)"%(nseries)
+
+            date_time = "%s %s"%(dcm.GetAcquisitionDate(),
+                                dcm.GetAcquisitionTime())
 
             parent = tree.AppendItem(self.root, title)
 
@@ -274,33 +287,34 @@ class TextPanel(wx.Panel):
                 first += 1
 
             tree.SetItemPyData(parent, patient)
-            tree.SetItemText(parent, "%s" % dicom.patient.id, 1)
-            tree.SetItemText(parent, "%s" % dicom.patient.age, 2)
-            tree.SetItemText(parent, "%s" % dicom.patient.gender, 3)
-            tree.SetItemText(parent, "%s" % dicom.acquisition.study_description, 4)
-            tree.SetItemText(parent, "%s" % dicom.acquisition.modality, 5)
+            tree.SetItemText(parent, "%s" % dcm.GetPatientID(), 1)
+            tree.SetItemText(parent, "%s" % dcm.GetPatientAge(), 2)
+            tree.SetItemText(parent, "%s" % dcm.GetPatientGender(), 3)
+            tree.SetItemText(parent, "%s" % dcm.GetStudyDescription(), 4)
+            tree.SetItemText(parent, "%s" % dcm.GetAcquisitionModality(), 5)
             tree.SetItemText(parent, "%s" % date_time, 6)
-            tree.SetItemText(parent, "%s" % patient.nslices, 7)
-            tree.SetItemText(parent, "%s" % dicom.acquisition.institution, 8)
-            tree.SetItemText(parent, "%s" % dicom.patient.birthdate, 9)
-            tree.SetItemText(parent, "%s" % dicom.acquisition.accession_number, 10)
-            tree.SetItemText(parent, "%s" % dicom.patient.physician, 11)
+            tree.SetItemText(parent, "%s" % dcm_grouper.SorterDicom().GetNumberOfSlicesByPatient(patient), 7)#patient.nslices, 7)
+            tree.SetItemText(parent, "%s" % dcm.GetInstitutionName(), 8)
+            tree.SetItemText(parent, "%s" % dcm.GetPatientBirthDate(), 9)
+            tree.SetItemText(parent, "%s" % dcm.GetAccessionNumber(), 10)
+            tree.SetItemText(parent, "%s" % dcm.GetPhysicianReferringName(), 11)
 
-            group_list = patient.GetGroups()
+            group_list = patient_list[patient].keys()
             for n, group in enumerate(group_list):
-                dicom = group.GetDicomSample()
+                
+                #dicom = group.GetDicomSample()
 
-                child = tree.AppendItem(parent, group.title)
+                child = tree.AppendItem(parent, "group.title")
                 tree.SetItemPyData(child, group)
 
-                tree.SetItemText(child, "%s" % group.title, 0)
-                tree.SetItemText(child, "%s" % dicom.acquisition.protocol_name, 4)
-                tree.SetItemText(child, "%s" % dicom.acquisition.modality, 5)
+                tree.SetItemText(child, "%s" % "group.title", 0)
+                tree.SetItemText(child, "%s" % dcm.GetProtocolName(), 4)
+                tree.SetItemText(child, "%s" % dcm.GetAcquisitionModality(), 5)
                 tree.SetItemText(child, "%s" % date_time, 6)
-                tree.SetItemText(child, "%s" % group.nslices, 7)
+                tree.SetItemText(child, "%s" % "9999", 7)
 
-                self.idserie_treeitem[(dicom.patient.id,
-                                       dicom.acquisition.serie_number)] = child
+                self.idserie_treeitem[(dcm.GetPatientID(),
+                                       dcm.GetSerieNumber())] = child
 
         tree.Expand(self.root)
         tree.SelectItem(parent_select)
