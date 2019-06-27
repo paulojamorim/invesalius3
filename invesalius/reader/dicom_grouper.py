@@ -86,7 +86,17 @@ class DicomSorter(with_metaclass(Singleton, object)):
                      {'tag group':{'tag':'value', 'tag':'value'}..}..]..}..}
         """
         
-        self.groups_dict = {} # group_key: DicomGroup
+        self.groups_dict = {}
+
+
+    def __GetItem(self, items, dcm_path):
+        item = [group for group in items\
+                if group['invesalius']['dicom_path'] == dcm_path]
+        if item:
+            return item[0] 
+        else:
+            return None
+
 
     def Add(self, item):
        
@@ -103,10 +113,12 @@ class DicomSorter(with_metaclass(Singleton, object)):
 
         if patient_name not in self.groups_dict.keys():
             self.groups_dict[patient_name] = {}
+
+        if series_key not in self.groups_dict[patient_name].keys():
             self.groups_dict[patient_name][series_key] = []
-            self.groups_dict[patient_name][series_key].append(item)
-        else:
-            self.groups_dict[patient_name][series_key].append(item)
+        
+        self.groups_dict[patient_name][series_key].append(item)
+
 
     def GetData(self):
         return self.groups_dict
@@ -142,7 +154,7 @@ class DicomSorter(with_metaclass(Singleton, object)):
                     sorted_items = []
                 
                     for dcm in dcm_paths:
-                       sorted_items.append(self.GetItem(items, dcm))
+                       sorted_items.append(self.__GetItem(items, dcm))
                     
                     self.groups_dict[patient][serie] = sorted_items
 
@@ -153,20 +165,12 @@ class DicomSorter(with_metaclass(Singleton, object)):
             n += len(self.groups_dict[patient][serie])
         return n
 
-
     def GetNumberOfSlicesBySerie(self, patient, serie):
         n = len(self.groups_dict[patient][serie])
         return n
 
-
-    def GetItem(self, items, dcm_path):
-        item = [group for group in items\
-                if group['invesalius']['dicom_path'] == dcm_path]
-        
-        if item:
-            return item[0] 
-        else:
-            return None
+    def GetSeriesFromPatient(self, patient):
+        return self.groups_dict[patient]
 
     def KeyIsPatientOrSerie(self, key):
         """

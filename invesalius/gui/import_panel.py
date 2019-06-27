@@ -324,12 +324,16 @@ class TextPanel(wx.Panel):
     def OnSelChanged(self, evt):
         item = self.tree.GetSelection()
         if self._selected_by_user:
+            #take clicked group of the treecrl
             group = self.tree.GetItemPyData(item)
-            if isinstance(group, dcm.DicomGroup):
+            
+            #group type is to verify if click is on patient or serie group of the treecrl
+            group_type = dcm_grouper.DicomSorter().KeyIsPatientOrSerie(group)
+
+            if group_type == const.PATIENT_GROUP:
                 Publisher.sendMessage('Load group into import panel',
                                             group=group)
-
-            elif isinstance(group, dcm.PatientGroup):
+            elif group_type == const.SERIE_GROUP:
                 id = group.GetDicomSample().patient.id
                 my_evt = SelectEvent(myEVT_SELECT_PATIENT, self.GetId())
                 my_evt.SetSelectedID(id)
