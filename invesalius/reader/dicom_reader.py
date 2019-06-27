@@ -176,8 +176,8 @@ class LoadDicom:
                                         
             if not(is_dicom_dir):
 
-                dcm_data = dicom_grouper.SorterDicom()
-                dcm_data.Append(data_dict)
+                dcm_data = dicom_grouper.DicomSorter()
+                dcm_data.Add(data_dict)
             
 
 def yGetDicomGroups(directory, recursive=True, gui=True):
@@ -259,12 +259,12 @@ class ProgressDicomReader:
                 self.UpdateLoadFileProgress(value_progress)
             else:
                 #after load all DICOM, apply sorter in all series
-                dicom_grouper.SorterDicom().SortData()
+                dicom_grouper.DicomSorter().Sort()
                 import json
                 with open('data.json', 'w') as outfile:  
-                    json.dump(dicom_grouper.SorterDicom().GetData(), outfile)
+                    json.dump(dicom_grouper.DicomSorter().GetData(), outfile)
                  
-                self.EndLoadFile(dicom_grouper.SorterDicom().GetData())
+                self.EndLoadFile(dicom_grouper.DicomSorter().GetData())
                 
         self.UpdateLoadFileProgress(None)
 

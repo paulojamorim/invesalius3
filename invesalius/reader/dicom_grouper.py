@@ -72,7 +72,7 @@ import invesalius.reader.dicom as dcm
 
 ORIENT_MAP = {"SAGITTAL":0, "CORONAL":1, "AXIAL":2, "OBLIQUE":2}
 
-class SorterDicom(with_metaclass(Singleton, object)):
+class DicomSorter(with_metaclass(Singleton, object)):
 
     def __init__(self): 
         """
@@ -88,7 +88,7 @@ class SorterDicom(with_metaclass(Singleton, object)):
         
         self.groups_dict = {} # group_key: DicomGroup
 
-    def Append(self, item):
+    def Add(self, item):
        
         dicom = dcm.Parser()
         dicom.SetData(item)
@@ -111,7 +111,7 @@ class SorterDicom(with_metaclass(Singleton, object)):
     def GetData(self):
         return self.groups_dict
 
-    def SortData(self):
+    def Sort(self):
 
         #sort by dictionary key
         #sorted(a['(teste)'], key=lambda i: i['path'])                                                                                                                                   

@@ -291,27 +291,27 @@ class TextPanel(wx.Panel):
             tree.SetItemText(parent, "%s" % dcm.GetPatientAge(), 2)
             tree.SetItemText(parent, "%s" % dcm.GetPatientGender(), 3)
             tree.SetItemText(parent, "%s" % dcm.GetStudyDescription(), 4)
-            tree.SetItemText(parent, "%s" % dcm.GetAcquisitionModality(), 5)
-            tree.SetItemText(parent, "%s" % date_time, 6)
-            tree.SetItemText(parent, "%s" % dcm_grouper.SorterDicom().GetNumberOfSlicesByPatient(patient), 7)#patient.nslices, 7)
+            #tree.SetItemText(parent, "%s" % dcm.GetAcquisitionModality(), 5)
+            #tree.SetItemText(parent, "%s" % date_time, 6)
+            tree.SetItemText(parent, "%s" % dcm_grouper.DicomSorter().GetNumberOfSlicesByPatient(patient), 7)#patient.nslices, 7)
             tree.SetItemText(parent, "%s" % dcm.GetInstitutionName(), 8)
             tree.SetItemText(parent, "%s" % dcm.GetPatientBirthDate(), 9)
             tree.SetItemText(parent, "%s" % dcm.GetAccessionNumber(), 10)
             tree.SetItemText(parent, "%s" % dcm.GetPhysicianReferringName(), 11)
 
             group_list = patient_list[patient].keys()
-            for n, group in enumerate(group_list):
+            for n, serie in enumerate(group_list):
                 
                 #dicom = group.GetDicomSample()
 
-                child = tree.AppendItem(parent, "group.title")
-                tree.SetItemPyData(child, group)
+                child = tree.AppendItem(parent, dcm.GetSeriesDescription())
+                tree.SetItemPyData(child, serie)
 
-                tree.SetItemText(child, "%s" % "group.title", 0)
+                tree.SetItemText(child, "%s" % dcm.GetSeriesDescription(), 0)
                 tree.SetItemText(child, "%s" % dcm.GetProtocolName(), 4)
                 tree.SetItemText(child, "%s" % dcm.GetAcquisitionModality(), 5)
                 tree.SetItemText(child, "%s" % date_time, 6)
-                tree.SetItemText(child, "%s" % "9999", 7)
+                tree.SetItemText(child, "%s" % dcm_grouper.DicomSorter().GetNumberOfSlicesBySerie(patient, serie), 7)
 
                 self.idserie_treeitem[(dcm.GetPatientID(),
                                        dcm.GetSerieNumber())] = child

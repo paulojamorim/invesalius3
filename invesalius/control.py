@@ -432,7 +432,6 @@ class Controller():
 
 
     def LoadImportPanel(self, patient_series):
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",patient_series)
         if patient_series and isinstance(patient_series, dict):
             Publisher.sendMessage("Load import panel", dicom_groups=patient_series)
             

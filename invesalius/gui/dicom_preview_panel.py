@@ -576,8 +576,10 @@ class DicomPreviewSlice(wx.Panel):
         self.files = []
         self.displayed_position = 0
         self.nhidden_last_display = 0
-        #dicom_files = group.GetList()
+        
+        dicom_files = group.GetList()
         dicom_files = group.GetHandSortedList()
+        
         n = 0
         for dicom in dicom_files:
             if isinstance(dicom.image.thumbnail_path, list):
