@@ -168,6 +168,18 @@ class DicomSorter(with_metaclass(Singleton, object)):
         else:
             return None
 
+    def KeyIsPatientOrSerie(self, key):
+        """
+        Idenfity if key is from patient or a specific serie.
+        """
+        if key in self.groups_dict.keys():
+            return const.PATIENT_GROUP
+        else:
+            for patient in self.groups_dict.keys():
+                if key in self.groups_dict[patient].keys():
+                    return const.SERIE_GROUP
+        return None
+
 
     def CleanData(self):
         pass

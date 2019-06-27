@@ -31,6 +31,12 @@ INVESALIUS_VERSION = "3.1.99994"
 
 INVESALIUS_ACTUAL_FORMAT_VERSION = 1.1
 
+#-- used in group to identify serie or 
+#patient group in import panel
+
+PATIENT_GROUP = 1
+SERIE_GROUP = 2
+
 #---------------
 
 # Measurements
