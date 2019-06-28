@@ -898,7 +898,7 @@ class SingleImagePreview(wx.Panel):
             value1 = '' 
         else:
             value1 = STR_SPC %(parser.GetImageThickness())
-            
+        
         orien_label = parser.GetOrientationLabelByInVesalius() 
         if orien_label == 'AXIAL':
             value2 = STR_LOCAL %(parser.GetImagePosition()[2])
@@ -910,6 +910,9 @@ class SingleImagePreview(wx.Panel):
             value2 = ''
 
         value = "%s\n%s" %(value1, value2)
+        print("---")
+        print(value)
+        print("----")
         self.text_image_location.SetValue(value)
 
         ## Text related to patient/ acquisiiton data
@@ -941,7 +944,7 @@ class SingleImagePreview(wx.Panel):
             filename = win32api.GetShortPathName(filename).encode(const.FS_ENCODE)
 
         np_image = imagedata_utils.read_dcm_slice_as_np2(filename)
-        print(">>> spacing", parser.GetImageSpacingXYZByInVesalius())
+        
         vtk_image = converters.to_vtk(np_image, parser.GetImageSpacingXYZByInVesalius(), 0, 'AXIAL')
 
         # ADJUST CONTRAST
