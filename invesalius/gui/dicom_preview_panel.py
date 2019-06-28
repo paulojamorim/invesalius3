@@ -866,15 +866,13 @@ class SingleImagePreview(wx.Panel):
                 wx.CallAfter(self.OnRun)
 
     def SetDicomGroup(self, group):
-        print("====================================================================")
-        print(group)
         self.dicom_list = group
         self.current_index = 0
         
         if len(self.dicom_list) > 1:
             self.nimages = len(self.dicom_list)
         else:
-            print("FIX this")
+            print("FIX this for multi-frame")
             self.nimages = self.dicom_list[0].image.number_of_frames
         # GUI
         self.slider.SetMax(self.nimages-1)
@@ -900,12 +898,13 @@ class SingleImagePreview(wx.Panel):
             value1 = '' 
         else:
             value1 = STR_SPC %(parser.GetImageThickness())
-
-        if parser.GetOrientationLabelByInVesalius() == 'AXIAL':
+            
+        orien_label = parser.GetOrientationLabelByInVesalius() 
+        if orien_label == 'AXIAL':
             value2 = STR_LOCAL %(parser.GetImagePosition()[2])
-        elif dicom.image.orientation_label == 'CORONAL':
+        elif orien_label == 'CORONAL':
             value2 = STR_LOCAL %(parser.GetImagePosition()[1])
-        elif dicom.image.orientation_label == 'SAGITTAL':
+        elif orien_label == 'SAGITTAL':
             value2 = STR_LOCAL %(parser.GetImagePosition()[0])
         else:
             value2 = ''
