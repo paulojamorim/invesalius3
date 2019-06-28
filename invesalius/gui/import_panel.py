@@ -311,7 +311,7 @@ class TextPanel(wx.Panel):
                 tree.SetItemText(child, "%s" % dcm.GetProtocolName(), 4)
                 tree.SetItemText(child, "%s" % dcm.GetAcquisitionModality(), 5)
                 tree.SetItemText(child, "%s" % date_time, 6)
-                tree.SetItemText(child, "%s" % dcm_grouper.DicomSorter().GetNumberOfSlicesBySerie(patient, serie), 7)
+                tree.SetItemText(child, "%s" % dcm_grouper.DicomSorter().GetNumberOfSlicesBySerie(serie), 7)
 
                 self.idserie_treeitem[(dcm.GetPatientID(),
                                        dcm.GetSerieNumber())] = child
@@ -330,13 +330,17 @@ class TextPanel(wx.Panel):
             #group type is to verify if click is on patient or serie group of the treecrl
             group_type = dcm_grouper.DicomSorter().KeyIsPatientOrSerie(group)
 
-            if group_type == const.PATIENT_GROUP:
+            if group_type == const.SERIE_GROUP:
                 Publisher.sendMessage('Load group into import panel',
                                             group=group)
-            elif group_type == const.SERIE_GROUP:
-                id = group.GetDicomSample().patient.id
+            elif group_type == const.PATIENT_GROUP:
+                
+                #id = group.GetDicomSample().patient.id
+                
                 my_evt = SelectEvent(myEVT_SELECT_PATIENT, self.GetId())
-                my_evt.SetSelectedID(id)
+                #my_evt.SetSelectedID(id)
+                my_evt.SetSelectedID(group)
+                
                 self.GetEventHandler().ProcessEvent(my_evt)
 
                 Publisher.sendMessage('Load patient into import panel',
@@ -520,7 +524,8 @@ class SlicePanel(wx.Panel):
         self.sizer = sizer
 
     def SetPatientSeries(self, patient):
-        group = patient.GetGroups()[0]
+        series = dcm_grouper.DicomSorter().GetSeriesFromPatient(patient)
+        group = series[list(series.keys())[0]]
         self.dicom_preview.SetDicomGroup(group)
         self.sizer.Layout()
         self.Update()

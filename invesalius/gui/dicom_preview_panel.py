@@ -23,6 +23,7 @@
 import sys
 import time
 import tempfile
+import math
 
 import wx
 import vtk
@@ -32,7 +33,9 @@ from vtk.wx.wxVTKRenderWindowInteractor import wxVTKRenderWindowInteractor
 from wx.lib.pubsub import pub as Publisher
 
 import invesalius.constants as const
+import invesalius.reader.dicom as dcm_parser
 import invesalius.reader.dicom_reader as dicom_reader
+import invesalius.reader.dicom_grouper as dcm_grouper
 import invesalius.data.vtk_utils as vtku
 import invesalius.utils as utils
 from invesalius.data import imagedata_utils
@@ -115,9 +118,9 @@ class DicomInfo(object):
     """
     Keep the informations and the image used by preview.
     """
-    def __init__(self, id, dicom, title, subtitle, n=0):
+    def __init__(self, id, thumbnail_path, title, subtitle, n=0):
         self.id = id
-        self.dicom = dicom
+        self.thumbnail_path = thumbnail_path
         self.title = title
         self.subtitle = subtitle
         self._preview = None
@@ -128,10 +131,10 @@ class DicomInfo(object):
     @property
     def preview(self):
         if not self._preview:
-            if isinstance(self.dicom.image.thumbnail_path, list):
-                bmp = wx.Bitmap(self.dicom.image.thumbnail_path[self._slice], wx.BITMAP_TYPE_PNG)
-            else:
-                bmp = wx.Bitmap(self.dicom.image.thumbnail_path, wx.BITMAP_TYPE_PNG)
+            #if isinstance(self.dicom.image.thumbnail_path, list):
+            #    bmp = wx.Bitmap(self.thumbnail_path[self._slice], wx.BITMAP_TYPE_PNG)
+            #else:
+            bmp = wx.Bitmap(self.thumbnail_path, wx.BITMAP_TYPE_PNG)
             self._preview = bmp.ConvertToImage()
         return self._preview
         
@@ -416,17 +419,44 @@ class DicomPreviewSeries(wx.Panel):
         self.files = []
         self.displayed_position = 0
         self.nhidden_last_display = 0
-        group_list = patient.GetGroups()
-        self.group_list = group_list
+        
+        #group_list = patient.GetGroups()
+        series = dcm_grouper.DicomSorter().GetSeriesFromPatient(patient)
+        self.group_list = series
         n = 0
-        for group in group_list:
-            info = DicomInfo((group.dicom.patient.id,
-                              group.dicom.acquisition.serie_number),
-                             group.dicom,
-                             group.title,
-                             _("%d images") %(group.nslices))
+
+        for serie_key in series.keys():
+            
+            serie = dcm_grouper.DicomSorter().GetSerie(serie_key)
+            #nslices = dcm_grouper.DicomSorter().GetNumberOfSlicesBySerie(serie_key)
+            nslices = len(serie)
+            
+            parser = dcm_parser.Parser()
+            parser.SetData(serie[math.floor(nslices/2)])
+            
+
+            patient_id = parser.GetPatientID()
+            serie_number = parser.GetSerieNumber()
+            thumbnail_path = parser.GetThumbnailPathByInVesalius()
+            serie_description = parser.GetSeriesDescription()
+
+            info = DicomInfo(patient_id, thumbnail_path,\
+                    serie_description, _("%d images") %(nslices), n)
             self.files.append(info)
             n+=1
+
+            
+            #def __init__(self, id, thumbnail_path, title, subtitle, n=0):
+            #info = (patient_id, serie_number, thumbnail_path) 
+
+        #for group in group_list:
+        #    info = DicomInfo((group.dicom.patient.id,
+        #                      group.dicom.acquisition.serie_number),
+        #                     group.dicom,
+        #                     group.title,
+        #                     _("%d images") %(group.nslices))
+        #    self.files.append(info)
+        #    n+=1
 
         scroll_range = len(self.files)/NCOLS
         if scroll_range * NCOLS < len(self.files):
@@ -536,7 +566,8 @@ class DicomPreviewSlice(wx.Panel):
         self.series = dicom_reader.GetSeries(directory)[0]
 
     def SetPatientGroups(self, patient):
-        self.group_list = patient.GetGroups()
+        series = dcm_grouper.DicomSorter().GetSeriesFromPatient(patient)
+        self.group_list = series
 
     def SetDicomSerie(self, pos):
         self.files = []
@@ -578,8 +609,7 @@ class DicomPreviewSlice(wx.Panel):
         self.nhidden_last_display = 0
         
         #dicom_files = group.GetList()
-        #dicom_files = group.GetHandSortedList()
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAaa") 
+        dicom_files = group.GetHandSortedList()
         #series = dcm_group.DicomSorter().GetSeriesFromPatient(group)
 
         n = 0
@@ -836,11 +866,15 @@ class SingleImagePreview(wx.Panel):
                 wx.CallAfter(self.OnRun)
 
     def SetDicomGroup(self, group):
-        self.dicom_list = group.GetHandSortedList()
+        print("====================================================================")
+        print(group)
+        self.dicom_list = group
         self.current_index = 0
+        
         if len(self.dicom_list) > 1:
             self.nimages = len(self.dicom_list)
         else:
+            print("FIX this")
             self.nimages = self.dicom_list[0].image.number_of_frames
         # GUI
         self.slider.SetMax(self.nimages-1)
@@ -855,21 +889,24 @@ class SingleImagePreview(wx.Panel):
 
         # UPDATE GUI
         ## Text related to size
-        value = STR_SIZE %(dicom.image.size[0], dicom.image.size[1])
+        parser = dcm_parser.Parser()
+        parser.SetData(dicom) 
+
+        value = STR_SIZE %(parser.GetDimensionX(), parser.GetDimensionY())
         self.text_image_size.SetValue(value)
 
         ## Text related to slice position
-        if not(dicom.image.spacing):
+        if not(parser.GetImageThickness()):
             value1 = '' 
-        else: 
-            value1 = STR_SPC %(dicom.image.spacing[2])
+        else:
+            value1 = STR_SPC %(parser.GetImageThickness())
 
-        if dicom.image.orientation_label == 'AXIAL':
-            value2 = STR_LOCAL %(dicom.image.position[2])
+        if parser.GetOrientationLabelByInVesalius() == 'AXIAL':
+            value2 = STR_LOCAL %(parser.GetImagePosition()[2])
         elif dicom.image.orientation_label == 'CORONAL':
-            value2 = STR_LOCAL %(dicom.image.position[1])
+            value2 = STR_LOCAL %(parser.GetImagePosition()[1])
         elif dicom.image.orientation_label == 'SAGITTAL':
-            value2 = STR_LOCAL %(dicom.image.position[0])
+            value2 = STR_LOCAL %(parser.GetImagePosition()[0])
         else:
             value2 = ''
 
@@ -877,43 +914,47 @@ class SingleImagePreview(wx.Panel):
         self.text_image_location.SetValue(value)
 
         ## Text related to patient/ acquisiiton data
-        value = STR_PATIENT %(dicom.patient.id,\
-                              dicom.acquisition.protocol_name)
+        value = STR_PATIENT %(parser.GetPatientID(),\
+                              parser.GetProtocolName())
         self.text_patient.SetValue(value)
 
         ## Text related to acquisition date and time
-        value = STR_ACQ % (dicom.acquisition.date,
-                            dicom.acquisition.time)
+        value = STR_ACQ % (parser.GetAcquisitionDate(),
+                            parser.GetAcquisitionTime())
         self.text_acquisition.SetValue(value)
 
-        if isinstance(dicom.image.thumbnail_path, list):
-            reader = vtk.vtkPNGReader()
-            if _has_win32api:
-                reader.SetFileName(win32api.GetShortPathName(dicom.image.thumbnail_path[index]).encode(const.FS_ENCODE))
-            else:
-                reader.SetFileName(dicom.image.thumbnail_path[index])
-            reader.Update()
+        #--- to multi-frame
+        #FIX
+        #if isinstance(dicom.image.thumbnail_path, list):
+        #    reader = vtk.vtkPNGReader()
+        #    if _has_win32api:
+        #        #reader.SetFileName(win32api.GetShortPathName(dicom.image.thumbnail_path[index]).encode(const.FS_ENCODE))
+        #        reader.SetFileName(win32api.GetShortPathName(parser.GetThumbnailPathByInVesalius()).encode(const.FS_ENCODE))
+        #
+        #    else:
+        #        reader.SetFileName(parser.GetThumbnailPathByInVesalius())
+        #    reader.Update()
+        #
+        #    image = reader.GetOutput()
+        
+        filename = parser.GetDICOMPathByInVesalius()
+        if _has_win32api:
+            filename = win32api.GetShortPathName(filename).encode(const.FS_ENCODE)
 
-            image = reader.GetOutput()
-        else:
-            filename = dicom.image.file
-            if _has_win32api:
-                filename = win32api.GetShortPathName(filename).encode(const.FS_ENCODE)
+        np_image = imagedata_utils.read_dcm_slice_as_np2(filename)
+        print(">>> spacing", parser.GetImageSpacingXYZByInVesalius())
+        vtk_image = converters.to_vtk(np_image, parser.GetImageSpacingXYZByInVesalius(), 0, 'AXIAL')
 
-            np_image = imagedata_utils.read_dcm_slice_as_np2(filename)
-            print(">>> spacing", dicom.image.spacing)
-            vtk_image = converters.to_vtk(np_image, dicom.image.spacing, 0, 'AXIAL')
+        # ADJUST CONTRAST
+        window_level = parser.GetImageWindowLevel()
+        window_width = parser.GetImageWindowWidth()
+        colorer = vtk.vtkImageMapToWindowLevelColors()
+        colorer.SetInputData(vtk_image)
+        colorer.SetWindow(float(window_width))
+        colorer.SetLevel(float(window_level))
+        colorer.Update()
 
-            # ADJUST CONTRAST
-            window_level = dicom.image.level
-            window_width = dicom.image.window
-            colorer = vtk.vtkImageMapToWindowLevelColors()
-            colorer.SetInputData(vtk_image)
-            colorer.SetWindow(float(window_width))
-            colorer.SetLevel(float(window_level))
-            colorer.Update()
-
-            image = colorer.GetOutput()
+        image = colorer.GetOutput()
 
         if self.actor is None:
             self.actor = vtk.vtkImageActor()

@@ -165,7 +165,27 @@ class DicomSorter(with_metaclass(Singleton, object)):
             n += len(self.groups_dict[patient][serie])
         return n
 
-    def GetNumberOfSlicesBySerie(self, patient, serie):
+    #def GetNumberOfSlicesBySerie(self, patient, serie):
+    #    n = len(self.groups_dict[patient][serie])
+    #    return n
+
+    def GetNumberOfSlicesBySerie(self, serie):
+        for patient in self.groups_dict.keys():
+            if serie in self.groups_dict[patient].keys():
+                return len(self.groups_dict[patient][serie])
+        return None
+
+        
+        n = len(self.groups_dict[patient][serie])
+        return n
+
+    def GetSerie(self, serie):
+        for patient in self.groups_dict.keys():
+            if serie in self.groups_dict[patient].keys():
+                return self.groups_dict[patient][serie]
+        return None
+
+        
         n = len(self.groups_dict[patient][serie])
         return n
 

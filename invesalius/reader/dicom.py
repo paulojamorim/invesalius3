@@ -937,8 +937,13 @@ class Parser():
     def GetThumbnailPathByInVesalius(self):
         return self.data['invesalius']['thumbnail_path']
 
-    def GetThumbnailPathByInVesalius(self):
+    def GetDICOMPathByInVesalius(self):
         return self.data['invesalius']['dicom_path']
+
+
+    def GetImageSpacingXYZByInVesalius(self):
+        return (self.GetImagePixelSpacingX(), self.GetImagePixelSpacingY(),\
+                self.GetImageThickness())
 
 
 
