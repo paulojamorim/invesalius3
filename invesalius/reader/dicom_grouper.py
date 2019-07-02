@@ -97,6 +97,38 @@ class DicomSorter(with_metaclass(Singleton, object)):
         else:
             return None
 
+    def CalculateZSpacing(self):
+        """
+        Call this method after read all DICOM slices.
+        Calculate z spacing based on slice distance.
+        """
+
+        for patient in self.groups_dict.keys():
+            for serie in self.groups_dict[patient].keys():
+                
+                orientation_axis = ORIENT_MAP[serie[-1]]
+
+                previous_pos = None
+                acum_slices_dif = 0
+
+                for _slice in self.groups_dict[patient][serie]:
+                    parser = dcm.Parser()
+                    parser.SetData(_slice)
+                   
+                    pos = parser.GetImagePosition()[orientation_axis]
+                    if not(previous_pos):
+                        previous_pos = pos
+                    else:
+                        dif = pos - previous_pos
+                        acum_slices_dif += dif
+                        previous_pos = pos
+                
+                 
+                zspacing = round(acum_slices_dif/(len(self.groups_dict[patient][serie]) - 1), 2)
+
+                print(zspacing)
+                #return item                 
+               
 
     def Add(self, item):
        
@@ -108,8 +140,8 @@ class DicomSorter(with_metaclass(Singleton, object)):
         serie_number = dicom.GetSerieNumber()
         orientation_label = dicom.GetOrientationLabelByInVesalius()
 
-        series_key = str((patient_name, study_id, serie_number,
-                     orientation_label))#, index)
+        series_key = (patient_name, study_id, serie_number,
+                     orientation_label)#, index)
 
         if patient_name not in self.groups_dict.keys():
             self.groups_dict[patient_name] = {}
