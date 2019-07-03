@@ -900,19 +900,22 @@ class SingleImagePreview(wx.Panel):
             value1 = STR_SPC %(parser.GetImageThickness())
         
         orien_label = parser.GetOrientationLabelByInVesalius() 
-        if orien_label == 'AXIAL':
-            value2 = STR_LOCAL %(parser.GetImagePosition()[2])
-        elif orien_label == 'CORONAL':
-            value2 = STR_LOCAL %(parser.GetImagePosition()[1])
-        elif orien_label == 'SAGITTAL':
-            value2 = STR_LOCAL %(parser.GetImagePosition()[0])
+        
+        pos = parser.GetImagePosition()
+        
+        if pos:
+            if orien_label == 'AXIAL': 
+                value2 = STR_LOCAL %(parser.GetImagePosition()[2])
+            elif orien_label == 'CORONAL':
+                value2 = STR_LOCAL %(parser.GetImagePosition()[1])
+            elif orien_label == 'SAGITTAL':
+                value2 = STR_LOCAL %(parser.GetImagePosition()[0])
+            else:
+                value2 = ''
         else:
             value2 = ''
 
         value = "%s\n%s" %(value1, value2)
-        print("---")
-        print(value)
-        print("----")
         self.text_image_location.SetValue(value)
 
         ## Text related to patient/ acquisiiton data

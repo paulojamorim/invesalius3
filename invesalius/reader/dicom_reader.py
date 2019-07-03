@@ -263,10 +263,21 @@ class ProgressDicomReader:
                 dcm_sorter.Sort()
                 dcm_sorter.CalculateZSpacing()
 
-                #import json
-                #with open('data.json', 'w') as outfile:  
-                #    json.dump(dicom_grouper.DicomSorter().GetData(), outfile)
-                 
+
+                #to test - save json file
+                import json
+                dic = dicom_grouper.DicomSorter().GetData()
+                new_dic = {}
+                for p in dic.keys():
+                    new_dic[str(p)] = {}
+                    for s in dic[p].keys():
+                        new_dic[str(p)][str(s)] = dic[p][s]
+
+                with open('data.json', 'w') as outfile:  
+                    json.dump(new_dic, outfile)
+                
+
+
                 self.EndLoadFile(dicom_grouper.DicomSorter().GetData())
                 
         self.UpdateLoadFileProgress(None)

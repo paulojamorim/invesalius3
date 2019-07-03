@@ -52,7 +52,9 @@
 # were swapped
 
 import sys
+import math
 import gdcm
+import numpy
 
 from invesalius.utils import Singleton
 from six import with_metaclass
@@ -68,7 +70,7 @@ else:
 
 import invesalius.utils as utils
 import invesalius.constants as const
-import invesalius.reader.dicom as dcm
+import invesalius.reader.dicom as dcm_parser
 
 ORIENT_MAP = {"SAGITTAL":0, "CORONAL":1, "AXIAL":2, "OBLIQUE":2}
 
@@ -99,8 +101,8 @@ class DicomSorter(with_metaclass(Singleton, object)):
 
     def CalculateZSpacing(self):
         """
-        Call this method after read all DICOM slices.
         Calculate z spacing based on slice distance.
+        Call this method after read all DICOM slices.
         """
 
         for patient in self.groups_dict.keys():
@@ -110,29 +112,63 @@ class DicomSorter(with_metaclass(Singleton, object)):
 
                 previous_pos = None
                 acum_slices_dif = 0
+                diferences = []
 
-                for _slice in self.groups_dict[patient][serie]:
-                    parser = dcm.Parser()
-                    parser.SetData(_slice)
+                if len(self.groups_dict[patient][serie]) > 1:
+                    for _slice in self.groups_dict[patient][serie]:
+                        parser = dcm_parser.Parser()
+                        parser.SetData(_slice)
+                       
+                        img_pos = parser.GetImagePosition()
+                       
+                        if img_pos:
+                            pos = img_pos[orientation_axis]
+                            if not(previous_pos):
+                                previous_pos = pos
+                            else:
+                                dif = round(math.fabs(pos - previous_pos), 2)
+                                diferences.append(dif)
+                                acum_slices_dif += dif
+                                previous_pos = pos
                    
-                    pos = parser.GetImagePosition()[orientation_axis]
-                    if not(previous_pos):
-                        previous_pos = pos
-                    else:
-                        dif = pos - previous_pos
-                        acum_slices_dif += dif
-                        previous_pos = pos
+                    if len(self.groups_dict[patient][serie]) > 1:
+                        zspacing = round(acum_slices_dif/(len(\
+                            self.groups_dict[patient][serie]) - 1), 2)
+                else:
+                    zspacing = 1
+                    
+                #verify if all slices distances are equal
+                diferences = numpy.unique(diferences)
                 
-                 
-                zspacing = round(acum_slices_dif/(len(self.groups_dict[patient][serie]) - 1), 2)
+                if diferences.shape[0] > 1:
+                    #have diferences
+                    slice_dif = True
+                else:
+                    slice_dif = False
+             
+                for i in range(len(self.groups_dict[patient][serie])):
+                    
+                    slice_ = self.groups_dict[patient][serie][i]
 
-                print(zspacing)
-                #return item                 
-               
+                    slice_['invesalius']['slices_dif_distance'] = slice_dif
+                    slice_['invesalius']['z_spacing'] = zspacing
+                    
+                    parser = dcm_parser.Parser()
+                    parser.SetData(_slice)
+                    
+                    if zspacing != parser.GetImageSpacingXYZByInVesalius()[2]:
+                        slice_['invesalius']['thinckness_equal_zspacing'] = False
+                    else:
+                        slice_['invesalius']['thinckness_equal_zspacing'] = True
+
+                    #update dictionary
+                    #ARRUMAR!!!
+                    self.groups_dict[patient][serie][i] = slice_
+
 
     def Add(self, item):
        
-        dicom = dcm.Parser()
+        dicom = dcm_parser.Parser()
         dicom.SetData(item)
 
         patient_name = dicom.GetPatientName()
@@ -156,10 +192,10 @@ class DicomSorter(with_metaclass(Singleton, object)):
         return self.groups_dict
 
     def Sort(self):
-
-        #sort by dictionary key
-        #sorted(a['(teste)'], key=lambda i: i['path'])                                                                                                                                   
-        #in each group
+        """
+        Sort DICOM file order into each serie.
+        Call after add all slices.
+        """
         for patient in self.groups_dict.keys():
 
             for serie in self.groups_dict[patient].keys():
@@ -168,27 +204,41 @@ class DicomSorter(with_metaclass(Singleton, object)):
 
                 #get all dicom patches from dictionary
                 dcm_paths = [i['invesalius']['dicom_path'] for i in items]
-              
-                #FIX: Remove IPPSorter if breast CT and CORONAL orientation
-                sorter = gdcm.IPPSorter()
-                sorter.SetComputeZSpacing(True)
-                sorter.SetZSpacingTolerance(1e-10)
-                
-                #try:
-                #    sorter.Sort([utils.encode(i, const.FS_ENCODE) for i in dcm_paths])
-                #except TypeError:
-                
-                sorter.Sort(dcm_paths)
-                
-                dcm_paths = sorter.GetFilenames()
+            
+                parser = dcm_parser.Parser()
+                parser.SetData(items[0])
 
-                if dcm_paths:
-                    sorted_items = []
-                
-                    for dcm in dcm_paths:
-                       sorted_items.append(self.__GetItem(items, dcm))
-                    
-                    self.groups_dict[patient][serie] = sorted_items
+                orientation_axis = ORIENT_MAP[serie[-1]]
+
+                if parser.GetManufacturerName() == "Koning":
+                    sorted_files = sorted(items, key=lambda items:\
+                            utils.encode(items['invesalius']['dicom_path'], const.FS_ENCODE))
+                else:
+
+                    if orientation_axis != ORIENT_MAP["CORONAL"]:
+                        
+                        sorter = gdcm.IPPSorter()
+                        sorter.SetComputeZSpacing(True)
+                        sorter.SetZSpacingTolerance(1e-10)
+                        sorter.Sort(dcm_paths)
+                        
+                        dcm_paths = sorter.GetFilenames()
+
+                        if dcm_paths:
+                            sorted_items = []
+                        
+                            for dcm in dcm_paths:
+                               sorted_items.append(self.__GetItem(items, dcm))
+                            
+                            self.groups_dict[patient][serie] = sorted_items
+
+
+                    else:
+                        sorted_files = sorted(items, key=lambda items:\
+                                items['0020']['0032'].replace(",", ".").split('\\')[0])
+                        
+                        self.groups_dict[patient][serie] = sorted_files
+
 
 
     def GetNumberOfSlicesByPatient(self, patient):
@@ -206,23 +256,24 @@ class DicomSorter(with_metaclass(Singleton, object)):
             if serie in self.groups_dict[patient].keys():
                 return len(self.groups_dict[patient][serie])
         return None
-
         
         n = len(self.groups_dict[patient][serie])
         return n
+
 
     def GetSerie(self, serie):
         for patient in self.groups_dict.keys():
             if serie in self.groups_dict[patient].keys():
                 return self.groups_dict[patient][serie]
         return None
-
         
         n = len(self.groups_dict[patient][serie])
         return n
 
+
     def GetSeriesFromPatient(self, patient):
         return self.groups_dict[patient]
+
 
     def KeyIsPatientOrSerie(self, key):
         """
