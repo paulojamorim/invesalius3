@@ -940,10 +940,14 @@ class Parser():
     def GetDICOMPathByInVesalius(self):
         return self.data['invesalius']['dicom_path']
 
-
     def GetImageSpacingXYZByInVesalius(self):
         return (self.GetImagePixelSpacingX(), self.GetImagePixelSpacingY(),\
                 self.GetImageThickness())
+
+    def GetZSpacingCalculedByInVesalius(self):
+        return self.data['invesalius']['z_spacing']
+
+
 
 
 

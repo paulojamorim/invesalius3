@@ -183,12 +183,12 @@ class InnerPanel(wx.Panel):
         dcm_sorter = dcm_grouper.DicomSorter()
         serie_to_open = dcm_sorter.GetSerie(group_key)
 
-        slice_amont = len(dcm_files)
+        slice_amont = len(serie_to_open)
         if (self.first_image_selection != None) and (self.first_image_selection != self.last_image_selection):
             slice_amont = (self.last_image_selection) - self.first_image_selection
             slice_amont += 1
             if slice_amont == 0:
-                slice_amont = len(dcm_files)
+                slice_amont = len(serie_to_open)
 
         nslices_result = slice_amont / (interval + 1)
         if (nslices_result > 1):

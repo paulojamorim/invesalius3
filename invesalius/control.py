@@ -32,6 +32,7 @@ import invesalius.gui.dialogs as dialog
 import invesalius.project as prj
 import invesalius.reader.dicom_grouper as dg
 import invesalius.reader.dicom_reader as dcm
+import invesalius.reader.dicom as dcm_parser
 import invesalius.reader.bitmap_reader as bmp
 import invesalius.reader.others_reader as oth
 import invesalius.session as ses
@@ -569,21 +570,24 @@ class Controller():
                          "CORONAL":const.CORONAL,
                          "SAGITTAL":const.SAGITAL}
 
+        parser = dcm_parser.Parser()
+        parser.SetData(dicom[0])
+
         proj = prj.Project()
-        proj.name = dicom.patient.name
-        proj.modality = dicom.acquisition.modality
-        proj.SetAcquisitionModality(dicom.acquisition.modality)
+        proj.name = parser.GetPatientName()
+        proj.modality = parser.GetAcquisitionModality()
+        proj.SetAcquisitionModality(parser.GetAcquisitionModality())
         proj.matrix_shape = matrix.shape
         proj.matrix_dtype = matrix.dtype.name
         proj.matrix_filename = matrix_filename
         #proj.imagedata = imagedata
         proj.dicom_sample = dicom
         proj.original_orientation =\
-                    name_to_const[dicom.image.orientation_label]
+                    name_to_const[parser.GetImageOrientationLabel()]
         # Forcing to Axial
         #  proj.original_orientation = const.AXIAL
-        proj.window = float(dicom.image.window)
-        proj.level = float(dicom.image.level)
+        proj.window = float(parser.GetImageWindowWidth())
+        proj.level = float(parser.GetImageWindowLevel())
         proj.threshold_range = int(matrix.min()), int(matrix.max())
         proj.spacing = self.Slice.spacing
 
@@ -772,30 +776,39 @@ class Controller():
             else:
                 dialog.ImportInvalidFiles(ftype="Others")
 
-    def OpenDicomGroup(self, dicom_group, interval, file_range, gui=True):
+    def OpenDicomGroup(self, dicom_to_open, interval, file_range, gui=True):
+        
+        parser = dcm_parser.Parser()
+        #take info from first dicom file
+        parser.SetData(dicom_to_open[0])
+
         # Retrieve general DICOM headers
-        dicom = dicom_group.GetDicomSample()
+        #dicom = dicom_group.GetDicomSample()
 
         # Create imagedata
         interval += 1
-        filelist = dicom_group.GetFilenameList()[::interval]
-        if not filelist:
-            utils.debug("Not used the IPPSorter")
-            filelist = [i.image.file for i in dicom_group.GetHandSortedList()[::interval]]
+        filelist = [dcm['invesalius']['dicom_path'] for dcm in\
+                        dicom_to_open]
+
+        filelist = filelist[::interval]
+
+        #if not filelist:
+        #    utils.debug("Not used the IPPSorter")
+        #    filelist = [i.image.file for i in dicom_group.GetHandSortedList()[::interval]]
         
         if file_range is not None and file_range[0] is not None and file_range[1] > file_range[0]:
             filelist = filelist[file_range[0]:file_range[1] + 1]
 
-        zspacing = dicom_group.zspacing * interval
+        zspacing = parser.GetZSpacingCalculedByInVesalius() * interval
 
-        size = dicom.image.size
-        bits = dicom.image.bits_allocad
-        sop_class_uid = dicom.acquisition.sop_class_uid
-        xyspacing = dicom.image.spacing
-        orientation = dicom.image.orientation_label
+        size = (parser.GetDimensionX(), parser.GetDimensionY())
+        bits = parser._GetBitsAllocated()
+        sop_class_uid = parser.GetSOPClassUID()
+        xyspacing = parser.GetPixelSpacing()
+        orientation = parser.GetImageOrientationLabel()
 
-        wl = float(dicom.image.level)
-        ww = float(dicom.image.window)
+        wl = float(parser.GetImageWindowLevel())
+        ww = float(parser.GetImageWindowWidth())
 
         if sop_class_uid == '1.2.840.10008.5.1.4.1.1.7': #Secondary Capture Image Storage
             use_dcmspacing = 1
@@ -804,7 +817,7 @@ class Controller():
 
         imagedata = None
 
-        if dicom.image.number_of_frames == 1:
+        if parser.GetNumberOfFrames() == 1:
             sx, sy = size
             n_slices = len(filelist)
             resolution_percentage = utils.calculate_resizing_tofitmemory(int(sx), int(sy), n_slices, bits/8)
@@ -845,7 +858,7 @@ class Controller():
         self.Slice.spacing = spacing
 
         # 1(a): Fix gantry tilt, if any
-        tilt_value = dicom.acquisition.tilt
+        tilt_value = parser.GetAcquisitionGantryTilt()
         if (tilt_value) and (gui):
             # Tell user gantry tilt and fix, according to answer
             message = _("Fix gantry tilt applying the degrees below")
@@ -864,7 +877,7 @@ class Controller():
         Publisher.sendMessage('Update threshold limits list',
                               threshold_range=scalar_range)
 
-        return self.matrix, self.filename, dicom
+        return self.matrix, self.filename, dicom_to_open
 
     def OpenOtherFiles(self, group):
         # Retreaving matrix from image data
