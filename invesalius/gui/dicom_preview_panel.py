@@ -607,30 +607,53 @@ class DicomPreviewSlice(wx.Panel):
         self.files = []
         self.displayed_position = 0
         self.nhidden_last_display = 0
-        
+        print("GROUPPPPPPPPPPPPPPPPPPPP", group)
+
         #dicom_files = group.GetList()
-        dicom_files = group.GetHandSortedList()
+        #dicom_files = group.GetHandSortedList()
         #series = dcm_group.DicomSorter().GetSeriesFromPatient(group)
+
+        dicom_files = dcm_grouper.DicomSorter().GetSerie(group)
+        nslices = len(dicom_files)
 
         n = 0
         for dicom in dicom_files:
-            if isinstance(dicom.image.thumbnail_path, list):
-                _slice = 0
-                for thumbnail in dicom.image.thumbnail_path:
-                    print(thumbnail)
-                    info = DicomInfo(n, dicom,
-                                     _("Image %d") % int(n),
-                                     "%.2f" % (dicom.image.position[2]), _slice)
-                    self.files.append(info)
-                    n+=1
-                    _slice += 1
-            else:
-                info = DicomInfo(n, dicom,
-                                 _("Image %d") % int(dicom.image.number),
-                                 "%.2f" % (dicom.image.position[2]),
-                                )
-                self.files.append(info)
-                n+=1
+            #FIX DICOM multiframe 
+            #if isinstance(dicom.image.thumbnail_path, list):
+            #    _slice = 0
+            #    for thumbnail in dicom.image.thumbnail_path:
+            #        print(thumbnail)
+            #        info = DicomInfo(n, dicom,
+            #                         _("Image %d") % int(n),
+            #                         "%.2f" % (dicom.image.position[2]), _slice)
+            #        self.files.append(info)
+            #        n+=1
+            #        _slice += 1
+            #else:
+            #info = DicomInfo(n, dicom,
+            #        _("Image %d") % int(dicom.image.number),\
+            #                "%.2f" % (dicom.image.position[2]),)
+            #    self.files.append(info)
+            #    n+=1
+
+            #nslices = len(serie)
+            
+            parser = dcm_parser.Parser()
+            parser.SetData(dicom)
+            
+            patient_id = parser.GetPatientID()
+            serie_number = parser.GetSerieNumber()
+            thumbnail_path = parser.GetThumbnailPathByInVesalius()
+            serie_description = parser.GetSeriesDescription()
+            img_number = parser.GetImageNumber()
+            img_pos = parser.GetImagePosition()[2]
+
+            info = DicomInfo(patient_id, thumbnail_path,\
+                    serie_description, _("Image %d") % int(img_number),\
+                    "%.2f" % (img_pos))
+            self.files.append(info)
+            n+=1
+
 
         scroll_range = len(self.files)/NCOLS
         if scroll_range * NCOLS < len(self.files):
@@ -865,15 +888,32 @@ class SingleImagePreview(wx.Panel):
             finally:
                 wx.CallAfter(self.OnRun)
 
-    def SetDicomGroup(self, group):
-        self.dicom_list = group
+    def SetDicomGroup(self, key):
+        print("LINHA ---------------------------- 892")
+        print(key)
+        print("-------------------------------------------------------------------------------------")
+        
+        dcm_sorter = dcm_grouper.DicomSorter() 
+        group_type = dcm_sorter.KeyIsPatientOrSerie(key)
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", group_type == const.PATIENT_GROUP)
+        if group_type == const.PATIENT_GROUP:
+            series = dcm_sorter.GetSeriesFromPatient(key)
+            
+            #get first serie from patient to preview patient DICOMs
+            serie = series[list(series.keys())[0]]
+        else:
+            serie = dcm_sorter.GetSerie(key)
+        
+        self.dicom_list = serie
         self.current_index = 0
         
-        if len(self.dicom_list) > 1:
-            self.nimages = len(self.dicom_list)
-        else:
-            print("FIX this for multi-frame")
-            self.nimages = self.dicom_list[0].image.number_of_frames
+        #if len(self.dicom_list) > 1:
+        self.nimages = len(self.dicom_list)
+        #else:
+        #    print("FIX this for multi-frame")
+        #    self.nimages = self.dicom_list[0].image.number_of_frames
+        
+        
         # GUI
         self.slider.SetMax(self.nimages-1)
         self.slider.SetValue(0)

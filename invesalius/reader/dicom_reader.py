@@ -277,7 +277,6 @@ class ProgressDicomReader:
                     json.dump(new_dic, outfile)
                 
 
-
                 self.EndLoadFile(dicom_grouper.DicomSorter().GetData())
                 
         self.UpdateLoadFileProgress(None)

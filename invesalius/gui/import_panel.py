@@ -173,21 +173,26 @@ class InnerPanel(wx.Panel):
     def OnClickCancel(self, evt):
         Publisher.sendMessage("Cancel DICOM load")
 
-    def LoadDicom(self, group):
+    def LoadDicom(self, group_key):
         interval = self.combo_interval.GetSelection()
-        if not isinstance(group, dcm.DicomGroup):
-            group = max(group.GetGroups(), key=lambda g: g.nslices)
+        print("VAIIIIIIIIIIIIIIIIIIIIIIIIIIIII IMPORTARRRRRRRRRRRRRRRRRRRRRRRRRRRRR",group_key)
         
-        slice_amont = group.nslices
+        #if not isinstance(group, dcm.DicomGroup):
+        #    group = max(group.GetGroups(), key=lambda g: g.nslices)
+        
+        dcm_sorter = dcm_grouper.DicomSorter()
+        serie_to_open = dcm_sorter.GetSerie(group_key)
+
+        slice_amont = len(dcm_files)
         if (self.first_image_selection != None) and (self.first_image_selection != self.last_image_selection):
             slice_amont = (self.last_image_selection) - self.first_image_selection
             slice_amont += 1
             if slice_amont == 0:
-                slice_amont = group.nslices
+                slice_amont = len(dcm_files)
 
         nslices_result = slice_amont / (interval + 1)
         if (nslices_result > 1):
-            Publisher.sendMessage('Open DICOM group', group=group,
+            Publisher.sendMessage('Open DICOM group', group=serie_to_open,
                                   interval=interval,
                                   file_range=(self.first_image_selection, self.last_image_selection))
         else:
@@ -480,11 +485,11 @@ class SeriesPanel(wx.Panel):
         my_evt.SetItemData(evt.GetItemData())
         self.GetEventHandler().ProcessEvent(my_evt)
 
-        #self.dicom_preview.SetDicomGroup(serie)
-        #self.dicom_preview.Show(1)
-        #self.serie_preview.Show(0)
+        self.dicom_preview.SetDicomGroup(serie)
+        self.dicom_preview.Show(1)
+        self.serie_preview.Show(0)
         self.sizer.Layout()
-        #self.Show()
+        self.Show()
         self.Update()
 
     def OnSelectSlice(self, evt):
@@ -524,9 +529,10 @@ class SlicePanel(wx.Panel):
         self.sizer = sizer
 
     def SetPatientSeries(self, patient):
-        series = dcm_grouper.DicomSorter().GetSeriesFromPatient(patient)
-        group = series[list(series.keys())[0]]
-        self.dicom_preview.SetDicomGroup(group)
+        print("PATIENTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT", patient)
+        #series = dcm_grouper.DicomSorter().GetSeriesFromPatient(patient)
+        #group = series[list(series.keys())[0]]
+        self.dicom_preview.SetDicomGroup(patient)
         self.sizer.Layout()
         self.Update()
 

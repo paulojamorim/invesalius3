@@ -99,6 +99,14 @@ class DicomSorter(with_metaclass(Singleton, object)):
         else:
             return None
 
+    def GetDicomPaths(self, serie):
+        for patient in self.groups_dict.keys():
+            if serie in self.groups_dict[patient].keys():
+                dcm_paths = [dcm['invesalius']['dicom_path'] for dcm in\
+                        self.groups_dict[patient][serie]]
+                return dcm_paths
+        return None
+
     def CalculateZSpacing(self):
         """
         Calculate z spacing based on slice distance.
@@ -267,8 +275,8 @@ class DicomSorter(with_metaclass(Singleton, object)):
                 return self.groups_dict[patient][serie]
         return None
         
-        n = len(self.groups_dict[patient][serie])
-        return n
+        #n = len(self.groups_dict[patient][serie])
+        #return n
 
 
     def GetSeriesFromPatient(self, patient):
