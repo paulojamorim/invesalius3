@@ -175,14 +175,17 @@ class InnerPanel(wx.Panel):
 
     def LoadDicom(self, group_key):
         interval = self.combo_interval.GetSelection()
-        print("VAIIIIIIIIIIIIIIIIIIIIIIIIIIIII IMPORTARRRRRRRRRRRRRRRRRRRRRRRRRRRRR",group_key)
         
         #if not isinstance(group, dcm.DicomGroup):
         #    group = max(group.GetGroups(), key=lambda g: g.nslices)
         
         dcm_sorter = dcm_grouper.DicomSorter()
-        serie_to_open = dcm_sorter.GetSerie(group_key)
-
+        
+        if dcm_sorter.KeyIsPatientOrSerie(group_key) == const.PATIENT_GROUP:
+            serie_to_open = dcm_sorter.GetSerie(list(dcm_sorter.GetSeriesFromPatient(group_key).keys())[0])
+        else:
+            serie_to_open = dcm_sorter.GetSerie(group_key)
+        
         slice_amont = len(serie_to_open)
         if (self.first_image_selection != None) and (self.first_image_selection != self.last_image_selection):
             slice_amont = (self.last_image_selection) - self.first_image_selection
