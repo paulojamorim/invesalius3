@@ -436,8 +436,8 @@ class Controller():
         if patient_series and isinstance(patient_series, dict):
             Publisher.sendMessage("Load import panel", dicom_groups=patient_series)
             
-            #first_patient = patient_series[0]
-            #Publisher.sendMessage("Load dicom preview", patient=first_patient)
+            first_patient = list(patient_series.keys())[0]
+            Publisher.sendMessage("Load dicom preview", patient=first_patient)
             
             return True
         else:

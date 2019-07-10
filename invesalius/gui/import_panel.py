@@ -502,9 +502,9 @@ class SeriesPanel(wx.Panel):
         self.GetEventHandler().ProcessEvent(my_evt)
 
     def ShowDicomSeries(self, patient):
-        if isinstance(patient, dcm.PatientGroup):
-            self.serie_preview.SetPatientGroups(patient)
-            self.dicom_preview.SetPatientGroups(patient)
+        #if isinstance(patient, dcm.PatientGroup):
+        self.serie_preview.SetPatientGroups(patient)
+        self.dicom_preview.SetPatientGroups(patient)
 
 
 class SlicePanel(wx.Panel):
@@ -545,8 +545,8 @@ class SlicePanel(wx.Panel):
         self.Update()
 
     def ShowDicomSeries(self, patient):
-        group = patient.GetGroups()[0]
-        self.dicom_preview.SetDicomGroup(group)
+        #group = patient.GetGroups()[0]
+        self.dicom_preview.SetDicomGroup(patient)
         self.sizer.Layout()
         self.Update()
 
