@@ -118,7 +118,7 @@ class DicomInfo(object):
     """
     Keep the informations and the image used by preview.
     """
-    def __init__(self, id, thumbnail_path, title, subtitle, n=0):
+    def __init__(self, id, thumbnail_path, title, subtitle, img_pos, n=0):
         self.id = id
         self.thumbnail_path = thumbnail_path
         self.title = title
@@ -126,7 +126,8 @@ class DicomInfo(object):
         self._preview = None
         self.selected = False
         self.filename = ""
-        self._slice = n
+        self._slice = img_pos
+        self.slice_number = n
 
     @property
     def preview(self):
@@ -253,7 +254,6 @@ class Preview(wx.Panel):
         """
         if self.dicom_info:
             self.dicom_info.release_thumbnail()
-
         self.dicom_info = dicom_info
         self.SetTitle(dicom_info.title)
         self.SetSubtitle(dicom_info.subtitle)
@@ -287,11 +287,11 @@ class Preview(wx.Panel):
             self.SetBackgroundColour(c)
 
     def OnSelect(self, evt):
-
+        print(">>>>>>>>>>>>>>>>>>>>>>>", "   ", dir(evt), "  ", evt.Id, "    ", evt.GetId(), "  ", evt.ClassName)
         shift_pressed = False
         if evt.shiftDown:
             shift_pressed = True
-
+        
         dicom_id = self.dicom_info.id
         self.select_on = True
         self.dicom_info.selected = True
@@ -312,7 +312,7 @@ class Preview(wx.Panel):
         # Generating a EVT_PREVIEW_CLICK event
         my_evt = SerieEvent(myEVT_PREVIEW_CLICK, self.GetId())
         my_evt.SetSelectedID(self.dicom_info.id)
-        my_evt.SetItemData(self.dicom_info.dicom)
+        my_evt.SetItemData(self.dicom_info.id)
         my_evt.SetShiftStatus(shift_pressed)
         my_evt.SetEventObject(self)
         self.GetEventHandler().ProcessEvent(my_evt)
@@ -338,7 +338,7 @@ class Preview(wx.Panel):
     def OnDClick(self, evt):
         my_evt = SerieEvent(myEVT_PREVIEW_DBLCLICK, self.GetId())
         my_evt.SetSelectedID(self.dicom_info.id)
-        my_evt.SetItemData(self.dicom_info.dicom)
+        my_evt.SetItemData(self.dicom_info.slice_number)
         my_evt.SetEventObject(self)
         self.GetEventHandler().ProcessEvent(my_evt)
 
@@ -382,6 +382,9 @@ class DicomPreviewSeries(wx.Panel):
         self._bind_events()
 
     def _Add_Panels_Preview(self):
+        """
+        Add panels with images of slices in preview panel
+        """
         self.previews = []
         for i in range(NROWS):
             for j in range(NCOLS):
@@ -440,7 +443,7 @@ class DicomPreviewSeries(wx.Panel):
             thumbnail_path = parser.GetThumbnailPathByInVesalius()
             serie_description = parser.GetSeriesDescription()
 
-            info = DicomInfo(patient_id, thumbnail_path,\
+            info = DicomInfo(serie_key, thumbnail_path,\
                     serie_description, _("%d images") %(nslices), n)
             self.files.append(info)
             n+=1
@@ -546,6 +549,9 @@ class DicomPreviewSlice(wx.Panel):
         self._bind_events()
 
     def _Add_Panels_Preview(self):
+        """
+        Add series image preview panel
+        """
         self.previews = []
         for i in range(NROWS):
             for j in range(NCOLS):
@@ -569,51 +575,50 @@ class DicomPreviewSlice(wx.Panel):
         series = dcm_grouper.DicomSorter().GetSeriesFromPatient(patient)
         self.group_list = series
 
-    def SetDicomSerie(self, pos):
-        self.files = []
-        self.displayed_position = 0
-        self.nhidden_last_display = 0
-        group = self.group_list[pos]
-        self.group = group
-        #dicom_files = group.GetList()
-        dicom_files = group.GetHandSortedList()
-        n = 0
-        for dicom in dicom_files:
-            if isinstance(dicom.image.thumbnail_path, list):
-                _slice = 0
-                for thumbnail in dicom.image.thumbnail_path:
-                    print(thumbnail)
-                    info = DicomInfo(n, dicom,
-                                     _("Image %d") % (n),
-                                     "%.2f" % (dicom.image.position[2]), _slice)
-                    self.files.append(info)
-                    n+=1
-                    _slice += 1
-            else:
-                info = DicomInfo(n, dicom,
-                                 _("Image %d") % (dicom.image.number),
-                                 "%.2f" % (dicom.image.position[2]))
-                self.files.append(info)
-                n+=1
+    #def SetDicomSerie(self, pos):
+    #    self.files = []
+    #    self.displayed_position = 0
+    #    self.nhidden_last_display = 0
+    #    group = self.group_list[pos]
+    #    self.group = group
+    #    #dicom_files = group.GetList()
+    #    dicom_files = group.GetHandSortedList()
+    #    n = 0
+    #    for dicom in dicom_files:
+    #        if isinstance(dicom.image.thumbnail_path, list):
+    #            _slice = 0
+    #            for thumbnail in dicom.image.thumbnail_path:
+    #                info = DicomInfo(n, dicom,
+    #                                 _("Image %d") % (n),
+    #                                 "%.2f" % (dicom.image.position[2]), _slice)
+    #                self.files.append(info)
+    #                n+=1
+    #                _slice += 1
+    #        else:
+    #            info = DicomInfo(n, dicom,
+    #                             _("Image %d") % (dicom.image.number),
+    #                             "%.2f" % (dicom.image.position[2]))
+    #            self.files.append(info)
+    #            n+=1
 
-        scroll_range = len(self.files)/NCOLS
-        if scroll_range * NCOLS < len(self.files):
-            scroll_range +=1
-        self.scroll.SetScrollbar(0, NROWS, scroll_range, NCOLS)
+    #    scroll_range = len(self.files)/NCOLS
+    #    if scroll_range * NCOLS < len(self.files):
+    #        scroll_range +=1
+    #    self.scroll.SetScrollbar(0, NROWS, scroll_range, NCOLS)
 
-        self._display_previews()
+    #    self._display_previews()
 
     def SetDicomGroup(self, group):
+        
         self.files = []
         self.displayed_position = 0
         self.nhidden_last_display = 0
-        print("GROUPPPPPPPPPPPPPPPPPPPP", group)
 
         #dicom_files = group.GetList()
         #dicom_files = group.GetHandSortedList()
         #series = dcm_group.DicomSorter().GetSeriesFromPatient(group)
-
         dicom_files = dcm_grouper.DicomSorter().GetSerie(group)
+        
         nslices = len(dicom_files)
 
         n = 0
@@ -648,9 +653,9 @@ class DicomPreviewSlice(wx.Panel):
             img_number = parser.GetImageNumber()
             img_pos = parser.GetImagePosition()[2]
 
-            info = DicomInfo(patient_id, thumbnail_path,\
+            info = DicomInfo(group, thumbnail_path,\
                     serie_description, _("Image %d") % int(img_number),\
-                    "%.2f" % (img_pos))
+                    "%.2f" % (img_pos), n)
             self.files.append(info)
             n+=1
 
@@ -889,13 +894,10 @@ class SingleImagePreview(wx.Panel):
                 wx.CallAfter(self.OnRun)
 
     def SetDicomGroup(self, key):
-        print("LINHA ---------------------------- 892")
-        print(key)
-        print("-------------------------------------------------------------------------------------")
         
         dcm_sorter = dcm_grouper.DicomSorter() 
         group_type = dcm_sorter.KeyIsPatientOrSerie(key)
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", group_type == const.PATIENT_GROUP)
+        
         if group_type == const.PATIENT_GROUP:
             series = dcm_sorter.GetSeriesFromPatient(key)
             
@@ -920,6 +922,7 @@ class SingleImagePreview(wx.Panel):
         self.ShowSlice()
 
     def ShowSlice(self, index = 0):
+        print("INDEXXXXX",index)
         try:
             dicom = self.dicom_list[index]
         except IndexError:

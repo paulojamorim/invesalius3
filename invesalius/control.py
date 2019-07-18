@@ -452,12 +452,7 @@ class Controller():
 
     def ImportMedicalImages(self, directory, gui=True):
         patients_groups = dcm.GetDicomGroups(directory)
-
-        print(patients_groups)
-
-
         name = directory.rpartition('\\')[-1].split('.')
-        print("patients: ", patients_groups)
 
         if len(patients_groups):
             # OPTION 1: DICOM
@@ -846,7 +841,6 @@ class Controller():
             elif orientation == 'SAGITTAL':
                 spacing = zspacing, xyspacing[1], xyspacing[0]
         else:
-            print(">>>>>> filelist", filelist)
             self.matrix, scalar_range, spacing, self.filename = image_utils.dcmmf2memmap(filelist[0], orientation)
 
         print(">>>>>> spacing", spacing)
