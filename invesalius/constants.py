@@ -37,7 +37,10 @@ INVESALIUS_ACTUAL_FORMAT_VERSION = 1.1
 PATIENT_GROUP = 1
 SERIE_GROUP = 2
 
-#---------------
+#-- Used to define preview type
+
+SERIE_PREVIEW = 1
+SLICE_PREVIEW = 2
 
 # Measurements
 MEASURE_NAME_PATTERN = _("M %d")

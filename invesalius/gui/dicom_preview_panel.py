@@ -196,6 +196,7 @@ class Preview(wx.Panel):
         # Will it be white?
         self.select_on = False
         self.dicom_info = None
+        self.preview_type = None
         self._init_ui()
         self._bind_events()
 
@@ -287,12 +288,12 @@ class Preview(wx.Panel):
             self.SetBackgroundColour(c)
 
     def OnSelect(self, evt):
-        print(">>>>>>>>>>>>>>>>>>>>>>>", "   ", dir(evt), "  ", evt.Id, "    ", evt.GetId(), "  ", evt.ClassName)
+
         shift_pressed = False
         if evt.shiftDown:
             shift_pressed = True
         
-        dicom_id = self.dicom_info.id
+        #dicom_id = self.dicom_info.id
         self.select_on = True
         self.dicom_info.selected = True
         ##c = wx.SystemSettings_GetColour(wx.SYS_COLOUR_BTNHIGHLIGHT)
@@ -311,8 +312,27 @@ class Preview(wx.Panel):
 
         # Generating a EVT_PREVIEW_CLICK event
         my_evt = SerieEvent(myEVT_PREVIEW_CLICK, self.GetId())
-        my_evt.SetSelectedID(self.dicom_info.id)
-        my_evt.SetItemData(self.dicom_info.id)
+
+        try:
+            #if user clicked out of panel components (label, text or dicompaint)
+            #it don't have preview_type, enter in exception, clicked on the panel.
+            preview_type = evt.GetEventObject().GetParent().preview_type
+        except(AttributeError):
+            preview_type = evt.GetEventObject().preview_type
+
+
+        #if preview_panel.preview_type == const.SLICE_PREVIEW:
+        #    my_evt.SetSelectedID(self.dicom_info.slice_number)
+        #    my_evt.SetItemData(self.dicom_info.slice_number)       
+        #else:
+        
+        if preview_type == const.SERIE_PREVIEW:
+            my_evt.SetSelectedID(self.dicom_info.id)
+            my_evt.SetItemData(self.dicom_info.id)
+        else:
+            my_evt.SetSelectedID(self.dicom_info.slice_number)
+            my_evt.SetItemData(self.dicom_info.slice_number)
+
         my_evt.SetShiftStatus(shift_pressed)
         my_evt.SetEventObject(self)
         self.GetEventHandler().ProcessEvent(my_evt)
@@ -383,12 +403,13 @@ class DicomPreviewSeries(wx.Panel):
 
     def _Add_Panels_Preview(self):
         """
-        Add panels with images of slices in preview panel
+        Add panels with image sample of series in preview panel
         """
         self.previews = []
         for i in range(NROWS):
             for j in range(NCOLS):
                 p = Preview(self)
+                p.preview_type = const.SERIE_PREVIEW 
                 p.Bind(EVT_PREVIEW_CLICK, self.OnSelect)
                 #if (i == j == 0):
                     #self._show_shadow(p)
@@ -550,12 +571,13 @@ class DicomPreviewSlice(wx.Panel):
 
     def _Add_Panels_Preview(self):
         """
-        Add series image preview panel
+        Add slice images in preview panel
         """
         self.previews = []
         for i in range(NROWS):
             for j in range(NCOLS):
                 p = Preview(self)
+                p.preview_type = const.SLICE_PREVIEW 
                 p.Bind(EVT_PREVIEW_CLICK, self.OnPreviewClick)
                 #p.Hide()
                 self.previews.append(p)
