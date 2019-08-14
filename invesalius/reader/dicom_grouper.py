@@ -143,8 +143,24 @@ class DicomSorter(with_metaclass(Singleton, object)):
                         zspacing = round(acum_slices_dif/(len(\
                             self.groups_dict[patient][serie]) - 1), 2)
                 else:
-                    zspacing = 1
                     
+                    number_of_frame = None
+                    
+                    try:
+                        number_of_frame = int(self.groups_dict[patient][serie][0]\
+                                ['0028']['0008'])
+                    except KeyError:
+                        number_of_frame = 1
+
+                    if number_of_frame > 1:
+                        try:
+                            zspacing = self.groups_dict[patient][serie][0]\
+                                    ['0018']['0050'].replace(",", ".")
+                        except(KeyError):
+                            zspacing = 1
+                    else:
+                        zspacing = 1
+        
                 #verify if all slices distances are equal
                 diferences = numpy.unique(diferences)
                 
@@ -160,15 +176,25 @@ class DicomSorter(with_metaclass(Singleton, object)):
 
                     slice_['invesalius']['slices_dif_distance'] = slice_dif
                     slice_['invesalius']['z_spacing'] = zspacing
+                  
+                    try:
+                        number_of_frame = int(self.groups_dict[patient][serie][i]\
+                                ['0028']['0008'])
+                    except KeyError:
+                        number_of_frame = 1
+
+                    #if DICOM single-frame
+                    if number_of_frame == 1:
+                        parser = dcm_parser.Parser()
+                        parser.SetData(_slice)
                     
-                    parser = dcm_parser.Parser()
-                    parser.SetData(_slice)
-                    
-                    if zspacing != parser.GetImageSpacingXYZByInVesalius()[2]:
-                        slice_['invesalius']['thinckness_equal_zspacing'] = False
+                        if zspacing != parser.GetImageSpacingXYZByInVesalius()[2]:
+                            slice_['invesalius']['thinckness_equal_zspacing'] = False
+                        else:
+                            slice_['invesalius']['thinckness_equal_zspacing'] = True
                     else:
                         slice_['invesalius']['thinckness_equal_zspacing'] = True
-
+                    
                     #update dictionary
                     #ARRUMAR!!!
                     self.groups_dict[patient][serie][i] = slice_

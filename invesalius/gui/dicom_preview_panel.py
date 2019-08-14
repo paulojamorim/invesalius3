@@ -132,11 +132,11 @@ class DicomInfo(object):
     @property
     def preview(self):
         if not self._preview:
-            #if isinstance(self.dicom.image.thumbnail_path, list):
-            #    bmp = wx.Bitmap(self.thumbnail_path[self._slice], wx.BITMAP_TYPE_PNG)
-            #else:
-            bmp = wx.Bitmap(self.thumbnail_path, wx.BITMAP_TYPE_PNG)
-            self._preview = bmp.ConvertToImage()
+            if isinstance(self.thumbnail_path, list):
+                bmp = wx.Bitmap(self.thumbnail_path[self.slice_number], wx.BITMAP_TYPE_PNG)
+            else:
+                bmp = wx.Bitmap(self.thumbnail_path, wx.BITMAP_TYPE_PNG)
+                self._preview = bmp.ConvertToImage()
         return self._preview
         
     def release_thumbnail(self):
@@ -320,12 +320,6 @@ class Preview(wx.Panel):
         except(AttributeError):
             preview_type = evt.GetEventObject().preview_type
 
-
-        #if preview_panel.preview_type == const.SLICE_PREVIEW:
-        #    my_evt.SetSelectedID(self.dicom_info.slice_number)
-        #    my_evt.SetItemData(self.dicom_info.slice_number)       
-        #else:
-        
         if preview_type == const.SERIE_PREVIEW:
             my_evt.SetSelectedID(self.dicom_info.id)
             my_evt.SetItemData(self.dicom_info.id)
@@ -453,6 +447,7 @@ class DicomPreviewSeries(wx.Panel):
             
             serie = dcm_grouper.DicomSorter().GetSerie(serie_key)
             #nslices = dcm_grouper.DicomSorter().GetNumberOfSlicesBySerie(serie_key)
+            
             nslices = len(serie)
             
             parser = dcm_parser.Parser()
@@ -464,23 +459,16 @@ class DicomPreviewSeries(wx.Panel):
             thumbnail_path = parser.GetThumbnailPathByInVesalius()
             serie_description = parser.GetSeriesDescription()
 
-            info = DicomInfo(serie_key, thumbnail_path,\
-                    serie_description, _("%d images") %(nslices), n)
+            if isinstance(thumbnail_path, list):
+                info = DicomInfo(serie_key, thumbnail_path[math.floor(nslices/2)],\
+                         serie_description, _("%d images") %(len(thumbnail_path)), n)
+            
+            else:
+                info = DicomInfo(serie_key, thumbnail_path,\
+                        serie_description, _("%d images") %(nslices), n)
+            
             self.files.append(info)
             n+=1
-
-            
-            #def __init__(self, id, thumbnail_path, title, subtitle, n=0):
-            #info = (patient_id, serie_number, thumbnail_path) 
-
-        #for group in group_list:
-        #    info = DicomInfo((group.dicom.patient.id,
-        #                      group.dicom.acquisition.serie_number),
-        #                     group.dicom,
-        #                     group.title,
-        #                     _("%d images") %(group.nslices))
-        #    self.files.append(info)
-        #    n+=1
 
         scroll_range = len(self.files)/NCOLS
         if scroll_range * NCOLS < len(self.files):
@@ -631,7 +619,6 @@ class DicomPreviewSlice(wx.Panel):
     #    self._display_previews()
 
     def SetDicomGroup(self, group):
-        
         self.files = []
         self.displayed_position = 0
         self.nhidden_last_display = 0
@@ -646,6 +633,7 @@ class DicomPreviewSlice(wx.Panel):
         n = 0
         for dicom in dicom_files:
             #FIX DICOM multiframe 
+            
             #if isinstance(dicom.image.thumbnail_path, list):
             #    _slice = 0
             #    for thumbnail in dicom.image.thumbnail_path:
@@ -664,7 +652,8 @@ class DicomPreviewSlice(wx.Panel):
             #    n+=1
 
             #nslices = len(serie)
-            
+
+
             parser = dcm_parser.Parser()
             parser.SetData(dicom)
             
@@ -675,11 +664,28 @@ class DicomPreviewSlice(wx.Panel):
             img_number = parser.GetImageNumber()
             img_pos = parser.GetImagePosition()[2]
 
-            info = DicomInfo(group, thumbnail_path,\
-                    serie_description, _("Image %d") % int(img_number),\
-                    "%.2f" % (img_pos), n)
-            self.files.append(info)
-            n+=1
+            if isinstance(thumbnail_path, list):
+                _slice = 0
+
+                n = 0
+                for thumbnail in thumbnail_path:
+                    #info = DicomInfo(n, dicom,
+                    #                 _("Image %d") % int(n),
+                    #                 "%.2f" % (dicom.image.position[2]), _slice)
+                    #self.files.append(info)
+                    #n+=1
+                    info = DicomInfo(group, thumbnail,\
+                        serie_description, _("Image %d") % int(n),\
+                        "%.2f" % (img_pos), _slice)
+                    self.files.append(info)
+                    n += 1
+                    _slice += 1
+            else:
+                info = DicomInfo(group, thumbnail_path,\
+                        serie_description, _("Image %d") % int(img_number),\
+                        "%.2f" % (img_pos), n)
+                self.files.append(info)
+                n+=1
 
 
         scroll_range = len(self.files)/NCOLS
@@ -916,7 +922,6 @@ class SingleImagePreview(wx.Panel):
                 wx.CallAfter(self.OnRun)
 
     def SetDicomGroup(self, key):
-        
         dcm_sorter = dcm_grouper.DicomSorter() 
         group_type = dcm_sorter.KeyIsPatientOrSerie(key)
         
@@ -944,7 +949,7 @@ class SingleImagePreview(wx.Panel):
         self.ShowSlice()
 
     def ShowSlice(self, index = 0):
-        print("INDEXXXXX",index)
+        print("Showwwwww Slice.....................")
         try:
             dicom = self.dicom_list[index]
         except IndexError:
@@ -993,38 +998,42 @@ class SingleImagePreview(wx.Panel):
                             parser.GetAcquisitionTime())
         self.text_acquisition.SetValue(value)
 
+        thumbnail_path = parser.GetThumbnailPathByInVesalius()
+        
         #--- to multi-frame
+        # self.dicom_list
         #FIX
-        #if isinstance(dicom.image.thumbnail_path, list):
-        #    reader = vtk.vtkPNGReader()
-        #    if _has_win32api:
-        #        #reader.SetFileName(win32api.GetShortPathName(dicom.image.thumbnail_path[index]).encode(const.FS_ENCODE))
-        #        reader.SetFileName(win32api.GetShortPathName(parser.GetThumbnailPathByInVesalius()).encode(const.FS_ENCODE))
-        #
-        #    else:
-        #        reader.SetFileName(parser.GetThumbnailPathByInVesalius())
-        #    reader.Update()
-        #
-        #    image = reader.GetOutput()
+        if isinstance(thumbnail_path, list):
+            reader = vtk.vtkPNGReader()
+            if _has_win32api:
+                #reader.SetFileName(win32api.GetShortPathName(dicom.image.thumbnail_path[index]).encode(const.FS_ENCODE))
+                reader.SetFileName(win32api.GetShortPathName(thumbnail_path[index]).encode(const.FS_ENCODE))
+            else:
+                reader.SetFileName(thumbnail_path[index])
+            reader.Update()
         
-        filename = parser.GetDICOMPathByInVesalius()
-        if _has_win32api:
-            filename = win32api.GetShortPathName(filename).encode(const.FS_ENCODE)
+            image = reader.GetOutput()
+       
+        else:
 
-        np_image = imagedata_utils.read_dcm_slice_as_np2(filename)
-        
-        vtk_image = converters.to_vtk(np_image, parser.GetImageSpacingXYZByInVesalius(), 0, 'AXIAL')
+            filename = parser.GetDICOMPathByInVesalius()
+            if _has_win32api:
+                filename = win32api.GetShortPathName(filename).encode(const.FS_ENCODE)
 
-        # ADJUST CONTRAST
-        window_level = parser.GetImageWindowLevel()
-        window_width = parser.GetImageWindowWidth()
-        colorer = vtk.vtkImageMapToWindowLevelColors()
-        colorer.SetInputData(vtk_image)
-        colorer.SetWindow(float(window_width))
-        colorer.SetLevel(float(window_level))
-        colorer.Update()
+            np_image = imagedata_utils.read_dcm_slice_as_np2(filename)
+            
+            vtk_image = converters.to_vtk(np_image, parser.GetImageSpacingXYZByInVesalius(), 0, 'AXIAL')
 
-        image = colorer.GetOutput()
+            # ADJUST CONTRAST
+            window_level = parser.GetImageWindowLevel()
+            window_width = parser.GetImageWindowWidth()
+            colorer = vtk.vtkImageMapToWindowLevelColors()
+            colorer.SetInputData(vtk_image)
+            colorer.SetWindow(float(window_width))
+            colorer.SetLevel(float(window_level))
+            colorer.Update()
+
+            image = colorer.GetOutput()
 
         if self.actor is None:
             self.actor = vtk.vtkImageActor()
