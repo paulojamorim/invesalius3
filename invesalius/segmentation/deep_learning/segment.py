@@ -619,6 +619,7 @@ class ImplantCTSegmentProcess(SegmentProcess):
         window_width=4000,
         window_level=700,
         method=0,
+        method_inference=0,
         patch_size=192,
         threshold=150,
         resize_by_spacing=True,
@@ -642,6 +643,7 @@ class ImplantCTSegmentProcess(SegmentProcess):
         self.image_spacing = image_spacing
         self.needed_spacing = (1.0, 1.0, 1.0)
         self.method = method
+        self.method_inference = method_inference
 
         if self.method == 1:
             self.torch_weights_file_name = "cranioplasty_jit_ct_gray.pt"
@@ -707,19 +709,36 @@ class ImplantCTSegmentProcess(SegmentProcess):
                     download_callback(comm_array),
                 )
                 weights_file = user_state_dict_file
-            segment_torch_jit_monai(
-                image,
-                weights_file,
-                self.overlap,
-                self.device_id,
-                probability_array,
-                comm_array,
-                self.patch_size,
-                resize_by_spacing=self.resize_by_spacing,
-                image_spacing=self.image_spacing,
-                needed_spacing=self.needed_spacing,
-                flipped=True,
-            )
+
+            if self.method_inference:
+                segment_torch_jit(
+                    image,
+                    weights_file,
+                    self.overlap,
+                    self.device_id,
+                    probability_array,
+                    comm_array,
+                    self.patch_size,
+                    resize_by_spacing=self.resize_by_spacing,
+                    image_spacing=self.image_spacing,
+                    needed_spacing=self.needed_spacing,
+                    flipped=True,
+                )
+
+            else:
+                segment_torch_jit_monai(
+                    image,
+                    weights_file,
+                    self.overlap,
+                    self.device_id,
+                    probability_array,
+                    comm_array,
+                    self.patch_size,
+                    resize_by_spacing=self.resize_by_spacing,
+                    image_spacing=self.image_spacing,
+                    needed_spacing=self.needed_spacing,
+                    flipped=True,
+                )
         else:
             utils.prepare_ambient(self.backend, self.device_id, self.use_gpu)
             segment_keras(

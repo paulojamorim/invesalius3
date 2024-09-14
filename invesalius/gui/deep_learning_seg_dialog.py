@@ -586,6 +586,20 @@ class ImplantSegmenterDialog(DeepLearningSegmenterDialog):
         self.method_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.method_sizer.Add(self.method, 2, wx.ALL, 5)
 
+        self.method_inference = wx.RadioBox(
+            self,
+            -1,
+            "Inference method:",
+            wx.DefaultPosition,
+            wx.DefaultSize,
+            ["Monai", "InVesalius"],
+            2,
+            wx.HORIZONTAL | wx.ALIGN_LEFT | wx.NO_BORDER,
+        )
+
+        self.method_inference_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.method_inference_sizer.Add(self.method_inference, 2, wx.ALL, 5)
+
         self.Layout()
         self.Centre()
 
@@ -593,6 +607,7 @@ class ImplantSegmenterDialog(DeepLearningSegmenterDialog):
         super()._do_layout()
         self.main_sizer.Insert(8, self.path_sizer, 0, wx.EXPAND | wx.ALL, 5)
         self.main_sizer.Insert(9, self.method_sizer, 0, wx.EXPAND | wx.ALL, 5)
+        self.main_sizer.Insert(10, self.method_inference_sizer, 0, wx.EXPAND | wx.ALL, 5)
 
     def OnSegment(self, evt):
         self.ShowProgress()
@@ -615,6 +630,7 @@ class ImplantSegmenterDialog(DeepLearningSegmenterDialog):
         use_gpu = self.chk_use_gpu.GetValue()
         prob_threshold = self.sld_threshold.GetValue() / 100.0
         method = self.method.GetSelection()
+        method_inference = self.method_inference.GetSelection()
 
         self.btn_close.Disable()
         self.btn_stop.Enable()
@@ -640,6 +656,7 @@ class ImplantSegmenterDialog(DeepLearningSegmenterDialog):
                 window_width,
                 window_level,
                 method=method,
+                method_inference=method_inference,
                 patch_size=patch_size,
                 resize_by_spacing=True,
                 image_spacing=slc.Slice().spacing,
