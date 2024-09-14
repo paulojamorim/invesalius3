@@ -22,6 +22,12 @@ from . import utils
 SIZE = 48
 
 
+import monai
+from monai.data import decollate_batch
+from monai.inferers import sliding_window_inference
+from monai.transforms import *
+
+
 def gen_patches(image, patch_size, overlap):
     overlap = int(patch_size * overlap / 100)
     sz, sy, sx = image.shape
@@ -526,6 +532,80 @@ class MandibleCTSegmentProcess(SegmentProcess):
             )
 
 
+def segment_torch_jit_monai(
+    image,
+    weights_file,
+    overlap,
+    device_id,
+    probability_array,
+    comm_array,
+    patch_size,
+    resize_by_spacing=True,
+    image_spacing=(1.0, 1.0, 1.0),
+    needed_spacing=(0.5, 0.5, 0.5),
+    flipped=False,
+):
+    import torch
+
+    from .model import WrapModel
+
+    print(f"\n\n\n{image_spacing}\n\n\n")
+    print("Patch size:", patch_size)
+
+    if resize_by_spacing:
+        old_shape = image.shape
+        new_shape = [
+            round(i * j / k)
+            for (i, j, k) in zip(old_shape, image_spacing[::-1], needed_spacing[::-1])
+        ]
+
+        image = resize(image, output_shape=new_shape, order=0, preserve_range=True)
+        original_probability_array = probability_array
+        probability_array = np.zeros_like(image)
+
+    device = device_id
+
+    device = torch.device("cuda")
+    model = torch.jit.load(weights_file, map_location=torch.device("cpu"))
+    model.to(device)
+    model.eval()
+
+    with torch.no_grad():
+        image = np.expand_dims(image, 0)
+        image = monai.data.MetaTensor([image], dtype=torch.float32)
+        test_inputs = image.to(device)
+
+        print(patch_size, round(overlap / 100, 2))
+        rs = patch_size
+        roi_size = [rs, rs, rs]
+
+        sw_batch_size = 1
+        test_data = sliding_window_inference(
+            test_inputs, roi_size, sw_batch_size, model, round(overlap / 100, 2)
+        )
+
+        post_transforms = Compose([Activations(sigmoid=True, argmax=False)])
+
+        test_data = [post_transforms(i) for i in decollate_batch(test_data)]
+        probability_array = test_data[0].detach().cpu().numpy()
+
+        shape = probability_array.shape
+        probability_array_cp = np.zeros((shape[1], shape[2], shape[3]))
+        probability_array_cp[:, :, :] = probability_array[1, :, :, :]
+        probability_array = probability_array_cp
+
+    # FIX: to remove
+    if flipped:
+        probability_array = np.flip(probability_array, 2)
+
+    if resize_by_spacing:
+        original_probability_array[:] = resize(
+            probability_array, output_shape=old_shape, preserve_range=True
+        )
+
+    comm_array[0] = np.Inf
+
+
 class ImplantCTSegmentProcess(SegmentProcess):
     def __init__(
         self,
@@ -627,7 +707,7 @@ class ImplantCTSegmentProcess(SegmentProcess):
                     download_callback(comm_array),
                 )
                 weights_file = user_state_dict_file
-            segment_torch_jit(
+            segment_torch_jit_monai(
                 image,
                 weights_file,
                 self.overlap,
