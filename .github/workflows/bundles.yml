@@ -86,7 +86,7 @@ jobs:
         - name: Generate InVesalius .exe file
           run: |
             cp ./bundle_tools/win/app.spec ./  
-            uv run pyinstaller app.spec --clean --noconfirm --collect-all tinygrad
+            uv run pyinstaller app.spec --clean --noconfirm
             mkdir installer
   
         - name: Generate InVesalius installer - win64 ai-ready build
