@@ -29,7 +29,8 @@ dependencies = [
     "requests>=2.32.3",
     "scikit-image==0.24.0",
     "scipy==1.14.0",
-    "setuptools-scm",
+    "setuptools>=68", # Versions above 8 are causing errors on Windows. 
+    "setuptools-scm<8",
     "tinygrad==0.10.2",
     "torch>=2.3.1",
     "vtk==9.3.0",
@@ -70,7 +71,7 @@ installer = [
 [tool.uv.sources]
 torch = [
   { index = "pytorch-cpu", marker = "sys_platform == 'darwin'"},
-  { index = "pytorch-cu124", marker = "sys_platform == 'win32' or sys_platform == 'linux'" },
+  { index = "pytorch-cu118", marker = "sys_platform == 'win32' or sys_platform == 'linux'" },
 ]
 
 [[tool.uv.index]]
@@ -79,8 +80,9 @@ url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
 [[tool.uv.index]]
-name = "pytorch-cu124"
-url = "https://download.pytorch.org/whl/cu124"
+#To maintain compatibility with older GPUs.
+name = "pytorch-cu118"
+url = "https://download.pytorch.org/whl/cu118"
 explicit = true
 
 
