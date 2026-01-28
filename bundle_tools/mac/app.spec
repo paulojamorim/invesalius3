@@ -116,7 +116,7 @@ libraries += invesalius_cy_binaries
 
 print("----------")
 print(glob.glob(os.path.join(SOURCE_DIR, 'invesalius_cy', 
-    '.*.so')))
+    '*.so')))
     
 # Add interpolation module
 libraries.append((glob.glob(os.path.join(SOURCE_DIR, 'invesalius_cy', 
