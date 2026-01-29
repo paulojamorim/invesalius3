@@ -152,11 +152,8 @@ jobs:
           export CPPFLAGS="-I$(brew --prefix libomp)/include"
           export LDFLAGS="-L$(brew --prefix libomp)/lib"
           OpenMP_ROOT=$(brew --prefix)/opt/libomp uv sync --all-extras
+          OpenMP_ROOT=$(brew --prefix)/opt/libomp uv pip install . --no-deps
       
-      - name: install invesalius_cy
-        run: |
-          uv pip install . --no-deps
-
       - name: Get InVesalius version
         run: |
           INVESALIUS_VERSION=$(uv run python -c "import importlib.metadata; print(importlib.metadata.version('invesalius'))")
