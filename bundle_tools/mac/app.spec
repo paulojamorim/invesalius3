@@ -111,8 +111,8 @@ invesalius_cy_data, invesalius_cy_binaries, invesalius_cy_hiddenimports = collec
 print("invesalius_cy_data",invesalius_cy_data)
 print("invesalius_cy_binaries",invesalius_cy_binaries)
 print("invesalius_cy_hiddenimports",invesalius_cy_hiddenimports)
-print(".venv\Lib\site-packages\", glob.glob(os.path.join(SOURCE_DIR, ".venv\Lib\site-packages\")))
-print(".venv\Lib\site-packages\invesalius_cy\*", glob.glob(os.path.join(SOURCE_DIR, ".venv\Lib\site-packages\invesalius_cy\*")))
+print(".venv/Lib/site-packages/", glob.glob(os.path.join(SOURCE_DIR, ".venv/Lib/site-packages/*")))
+print(".venv/Lib/site-packages/invesalius_cy/*", glob.glob(os.path.join(SOURCE_DIR, ".venv/Lib/site-packages/invesalius_cy/*")))
 
 data_files += onnx_data
 data_files += invesalius_cy_data
