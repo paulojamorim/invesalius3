@@ -108,6 +108,12 @@ libraries += tinygrad_binaries
 onnx_data, onnx_binaries, onnx_hiddenimports = collect_all("onnxruntime")
 invesalius_cy_data, invesalius_cy_binaries, invesalius_cy_hiddenimports = collect_all("invesalius_cy")
 
+print("invesalius_cy_data",invesalius_cy_data)
+print("invesalius_cy_binaries",invesalius_cy_binaries)
+print("invesalius_cy_hiddenimports",invesalius_cy_hiddenimports)
+print(".venv\Lib\site-packages\", glob.glob(os.path.join(SOURCE_DIR, ".venv\Lib\site-packages\")))
+print(".venv\Lib\site-packages\invesalius_cy\*", glob.glob(os.path.join(SOURCE_DIR, ".venv\Lib\site-packages\invesalius_cy\*")))
+
 data_files += onnx_data
 data_files += invesalius_cy_data
 
@@ -116,11 +122,12 @@ libraries += invesalius_cy_binaries
 
 print("----------")
 print(glob.glob(os.path.join(SOURCE_DIR, 'invesalius_cy', 
-    '*.so')))
+    '*')))
+
     
 # Add interpolation module
 libraries.append((glob.glob(os.path.join(SOURCE_DIR, 'invesalius_cy', 
-    '.*.so'))[0], 'invesalius_cy'))  # .so files for macOS
+    '.*.so')), 'invesalius_cy'))  # .so files for macOS
     
 #---------------------------------------------------------------------------------
 
