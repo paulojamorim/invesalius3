@@ -115,10 +115,9 @@ libraries += onnx_binaries
 libraries += invesalius_cy_binaries
 
 print("----------")
-print(glob.glob(os.path.join(SOURCE_DIR, 'invesalius_cy', 
-    '*'))[0])
+print((glob.glob(os.path.join(SOURCE_DIR, 'invesalius_cy', 
+    'interpolation.*.so'))[0], 'invesalius_cy'))
 
-    
 # Add interpolation module
 libraries.append((glob.glob(os.path.join(SOURCE_DIR, 'invesalius_cy', 
     '.*.so'))[0], 'invesalius_cy'))  # .so files for macOS
