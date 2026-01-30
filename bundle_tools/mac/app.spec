@@ -115,8 +115,9 @@ libraries += onnx_binaries
 libraries += invesalius_cy_binaries
 
 print("----------")
+print(">>>>>>>>>>>>", libraries )
 print((glob.glob(os.path.join(SOURCE_DIR, 'invesalius_cy', 
-    '*.so')), 'invesalius_cy'))
+    '*.so'))[0]))
 
 # Add interpolation module
 libraries.append((glob.glob(os.path.join(SOURCE_DIR, 'invesalius_cy', 
