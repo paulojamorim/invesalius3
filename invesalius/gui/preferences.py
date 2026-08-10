@@ -52,16 +52,7 @@ class Preferences(wx.Dialog):
         if mode == const.MODE_NAVIGATOR:
             tracker = Tracker()
             robots = Robots()
-            # If the robot is not initialized yet (maybe NavigationHub hasn't run),
-            # this gets the first robot or creates one.
-            if len(robots.robots_by_id) == 0:
-                robots.AddRobot(
-                    tracker=tracker,
-                    navigation=Navigation(
-                        pedal_connector=None, neuronavigation_api=NeuronavigationApi()
-                    ),
-                    icp=None,
-                )
+
             neuronavigation_api = NeuronavigationApi()
             pedal_connector = PedalConnector(neuronavigation_api, self)
             navigation = Navigation(
@@ -2321,23 +2312,20 @@ class TrackerTab(wx.Panel):
         tracker_sizer = wx.StaticBoxSizer(wx.VERTICAL, self, _("Setup tracker"))
         tracker_sizer.Add(ref_sizer, 1, wx.ALL | wx.FIXED_MINSIZE, 20)
 
-        # Ensure at least two robots exist in Robots manager for the UI
-        while len(self.robots.robots_by_id) < 2:
-            self.robots.AddRobot(tracker=self.tracker, navigation=self.navigation, icp=None)
-
         robot_0 = self.robots.GetRobot(0)
-        robot_1 = self.robots.GetRobot(1)
 
         # Robot setup panel (child component) for ID 0
         self.robot_setup_panel_0 = RobotSetupPanel(self, robot_0)
 
-        # Robot setup panel (child component) for ID 1
-        self.robot_setup_panel_1 = RobotSetupPanel(self, robot_1)
+        self.robot_setup_panel_1 = None
+        if len(self.robots.robots_by_id) > 1:
+            self.robot_setup_panel_1 = RobotSetupPanel(self, self.robots.GetRobot(1))
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(tracker_sizer, 0, wx.ALL | wx.EXPAND, 7)
         main_sizer.Add(self.robot_setup_panel_0, 0, wx.ALL | wx.EXPAND, 0)
-        main_sizer.Add(self.robot_setup_panel_1, 0, wx.ALL | wx.EXPAND, 0)
+        if self.robot_setup_panel_1:
+            main_sizer.Add(self.robot_setup_panel_1, 0, wx.ALL | wx.EXPAND, 0)
 
         self.main_sizer = main_sizer
         self.SetSizerAndFit(main_sizer)
@@ -2414,9 +2402,17 @@ class TrackerTab(wx.Panel):
 
     def UpdateRobotPanelsVisibility(self):
         if self.n_coils > 1:
-            self.main_sizer.Show(self.robot_setup_panel_1)
+            if len(self.robots.robots_by_id) < 2:
+                self.robots.AddRobot(tracker=self.tracker, navigation=self.navigation, icp=None)
+
+            if not getattr(self, "robot_setup_panel_1", None):
+                self.robot_setup_panel_1 = RobotSetupPanel(self, self.robots.GetRobot(1))
+                self.main_sizer.Add(self.robot_setup_panel_1, 0, wx.ALL | wx.EXPAND, 0)
+
+            self.robot_setup_panel_1.Show()
         else:
-            self.main_sizer.Hide(self.robot_setup_panel_1)
+            if getattr(self, "robot_setup_panel_1", None):
+                self.robot_setup_panel_1.Hide()
 
         self.Layout()
         if self.GetParent():
