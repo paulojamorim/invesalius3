@@ -1975,8 +1975,8 @@ class RobotButtonsPanel(wx.Panel):
         self.robot_reset_errors_button = robot_reset_errors_button
 
         # Sizer
-        sizer = wx.FlexGridSizer(4, 5, 5)
-        sizer.AddMany(
+        buttons_sizer = wx.FlexGridSizer(4, 5, 5)
+        buttons_sizer.AddMany(
             [
                 (robot_track_target_button),
                 (robot_move_away_button),
@@ -1984,7 +1984,21 @@ class RobotButtonsPanel(wx.Panel):
                 (robot_reset_errors_button),
             ]
         )
-        self.SetSizer(sizer)
+
+        label_text = f"Robot {self.robot.robot_id}"
+        if getattr(self.robot, "coil_name", None):
+            label_text += f" - {self.robot.coil_name}"
+
+        label = wx.StaticText(self, -1, label_text)
+        font = label.GetFont()
+        font.SetWeight(wx.FONTWEIGHT_BOLD)
+        label.SetFont(font)
+
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(label, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.BOTTOM, 5)
+        main_sizer.Add(buttons_sizer, 0, wx.ALIGN_CENTER_HORIZONTAL)
+
+        self.SetSizer(main_sizer)
 
         self.__bind_events()
 
@@ -2315,9 +2329,13 @@ class ControlPanel(wx.Panel):
         self.target_mode_button = target_mode_button
         self.UpdateTargetButton()
 
-        # Robot buttons panel
-        self.robot_buttons_panel = RobotButtonsPanel(scroll_panel, self.robot, self.navigation)
-
+        # Robot buttons panels
+        self.robot_panels = {}
+        self.robots_sizer = wx.BoxSizer(wx.VERTICAL)
+        for robot in nav_hub.robots.robots_by_id.values():
+            panel = RobotButtonsPanel(scroll_panel, robot, self.navigation)
+            self.robot_panels[robot.robot_id] = panel
+            self.robots_sizer.Add(panel, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.BOTTOM, 10)
         # Toggle button for displaying TMS motor mapping on brain
         tooltip = _("Show TMS motor mapping on brain")
         BMP_MOTOR_MAP = wx.Bitmap(
@@ -2362,7 +2380,7 @@ class ControlPanel(wx.Panel):
 
         scroll_sizer = wx.BoxSizer(wx.VERTICAL)
         scroll_sizer.Add(navigation_buttons_sizer, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 10)
-        scroll_sizer.Add(self.robot_buttons_panel, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.BOTTOM, 10)
+        scroll_sizer.Add(self.robots_sizer, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.BOTTOM, 10)
         scroll_panel.SetSizer(scroll_sizer)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -2388,12 +2406,22 @@ class ControlPanel(wx.Panel):
         Publisher.subscribe(self.UnsetTarget, "Unset target")
         Publisher.subscribe(self.UpdateNavigationStatus, "Navigation status")
 
+        Publisher.subscribe(self.OnRobotAdded, "Robot added")
+
         Publisher.subscribe(self.UpdateTractsVisualization, "Update tracts visualization")
 
         # Externally press/unpress and enable/disable buttons.
         Publisher.subscribe(self.PressShowProbeButton, "Press show-probe button")
 
         Publisher.subscribe(self.OnCoilSelectionDone, "Coil selection done")
+
+    def OnRobotAdded(self, robot):
+        panel = RobotButtonsPanel(self.scroll_panel, robot, self.navigation)
+        self.robot_panels[robot.robot_id] = panel
+        self.robots_sizer.Add(panel, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.BOTTOM, 10)
+        self.scroll_panel.Layout()
+        self.Layout()
+        self.Refresh()
 
         Publisher.subscribe(self.PressShowCoilButton, "Press show-coil button")
         Publisher.subscribe(self.EnableShowCoilButton, "Enable show-coil button")
