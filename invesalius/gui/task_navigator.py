@@ -1881,7 +1881,7 @@ class RobotButtonsPanel(wx.Panel):
     making it self-contained and reusable.
     """
 
-    def __init__(self, parent, robot, navigation):
+    def __init__(self, parent, robot, navigation, show_label=False):
         wx.Panel.__init__(self, parent)
 
         self.robot = robot
@@ -1989,18 +1989,25 @@ class RobotButtonsPanel(wx.Panel):
         if getattr(self.robot, "coil_name", None):
             label_text += f" - {self.robot.coil_name}"
 
-        label = wx.StaticText(self, -1, label_text)
-        font = label.GetFont()
+        self.label = wx.StaticText(self, -1, label_text)
+        font = self.label.GetFont()
         font.SetWeight(wx.FONTWEIGHT_BOLD)
-        label.SetFont(font)
+        self.label.SetFont(font)
+
+        if not show_label:
+            self.label.Hide()
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(label, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.BOTTOM, 5)
+        main_sizer.Add(self.label, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.BOTTOM, 5)
         main_sizer.Add(buttons_sizer, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
         self.SetSizer(main_sizer)
 
         self.__bind_events()
+
+    def ShowLabel(self, show=True):
+        self.label.Show(show)
+        self.Layout()
 
     def __bind_events(self):
         # State tracking subscriptions
@@ -2165,7 +2172,7 @@ class ControlPanel(wx.Panel):
 
         self.navigation = nav_hub.navigation
         self.tracker = nav_hub.tracker
-        self.robot = nav_hub.robot
+        self.robot = None
         self.icp = nav_hub.icp
         self.image = nav_hub.image
         self.mep_visualizer = nav_hub.mep_visualizer
@@ -2332,10 +2339,7 @@ class ControlPanel(wx.Panel):
         # Robot buttons panels
         self.robot_panels = {}
         self.robots_sizer = wx.BoxSizer(wx.VERTICAL)
-        for robot in nav_hub.robots.robots_by_id.values():
-            panel = RobotButtonsPanel(scroll_panel, robot, self.navigation)
-            self.robot_panels[robot.robot_id] = panel
-            self.robots_sizer.Add(panel, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.BOTTOM, 10)
+
         # Toggle button for displaying TMS motor mapping on brain
         tooltip = _("Show TMS motor mapping on brain")
         BMP_MOTOR_MAP = wx.Bitmap(
@@ -2416,9 +2420,18 @@ class ControlPanel(wx.Panel):
         Publisher.subscribe(self.OnCoilSelectionDone, "Coil selection done")
 
     def OnRobotAdded(self, robot):
-        panel = RobotButtonsPanel(self.scroll_panel, robot, self.navigation)
+        if self.robot is None:
+            self.robot = robot
+
+        show_labels = len(self.robot_panels) > 0
+        panel = RobotButtonsPanel(self.scroll_panel, robot, self.navigation, show_label=show_labels)
         self.robot_panels[robot.robot_id] = panel
         self.robots_sizer.Add(panel, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.BOTTOM, 10)
+
+        if show_labels:
+            for p in self.robot_panels.values():
+                p.ShowLabel(True)
+
         self.scroll_panel.Layout()
         self.Layout()
         self.Refresh()

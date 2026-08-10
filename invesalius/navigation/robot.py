@@ -431,7 +431,7 @@ class Robots(metaclass=Singleton):
         if coil_name:
             self.robots_by_coil[coil_name] = new_robot
 
-        Publisher.sendMessage("Robot added", robot=new_robot)
+        wx.CallAfter(Publisher.sendMessage, "Robot added", robot=new_robot)
 
         return new_robot
 
