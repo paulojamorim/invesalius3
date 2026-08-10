@@ -430,6 +430,9 @@ class Robots(metaclass=Singleton):
         self.robots_by_id[robot_id] = new_robot
         if coil_name:
             self.robots_by_coil[coil_name] = new_robot
+
+        Publisher.sendMessage("Robot added", robot=new_robot)
+
         return new_robot
 
     def GetActiveRobot(self, main_coil_name):
