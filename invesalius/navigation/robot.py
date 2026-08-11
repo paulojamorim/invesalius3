@@ -465,7 +465,7 @@ class Robots(metaclass=Singleton):
 
         return new_robot
 
-    def SetMainCoilName(self, main_coil_name):
+    def SetMainCoil(self, main_coil_name):
         if main_coil_name in self.robots_by_coil:
             self.main_coil_name = main_coil_name
 
