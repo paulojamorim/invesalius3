@@ -1220,9 +1220,11 @@ class ObjectTab(wx.Panel):
         Publisher.subscribe(self.OnEnableRobot, "Enable robot")
 
     def OnEnableRobot(self, enabled=False, robot_id=None):
+        show_multicoil = self.navigation.n_coils > 1
+
         if robot_id == 0:
             if enabled:
-                self.choice_robot_0_coil.Show(True)
+                self.choice_robot_0_coil.Show(show_multicoil)
                 self.robot_0_lbl.SetLabel("Robot 0 is connected. Coil attached: ")
                 if self.robot_0 and self.robot_0.GetCoilName():
                     self.choice_robot_0_coil.SetValue(self.robot_0.GetCoilName())
@@ -1234,7 +1236,7 @@ class ObjectTab(wx.Panel):
                 self.robot_1 = self.robots.GetRobot(1)
 
             if enabled:
-                self.choice_robot_1_coil.Show(True)
+                self.choice_robot_1_coil.Show(show_multicoil)
                 self.robot_1_lbl.SetLabel("Robot 1 is connected. Coil attached: ")
                 if self.robot_1 and self.robot_1.GetCoilName():
                     self.choice_robot_1_coil.SetValue(self.robot_1.GetCoilName())
