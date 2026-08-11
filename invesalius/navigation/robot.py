@@ -491,6 +491,9 @@ class Robots(metaclass=Singleton):
     def SetMainCoil(self, main_coil_name):
         if main_coil_name in self.robots_by_coil:
             self.main_coil_name = main_coil_name
+            robot = self.GetActiveRobot()
+            if robot:
+                robot.SendTargetToRobot()
 
     def GetActiveRobot(self):
         if self.main_coil_name:
