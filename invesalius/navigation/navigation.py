@@ -66,13 +66,19 @@ class NavigationHub(metaclass=Singleton):
             pedal_connector=self.pedal_connector, neuronavigation_api=self.neuronavigation_api
         )
         self.robots = Robots()
-        # Initialize the first robot by default
-        if len(self.robots.robots_by_id) == 0:
-            self.robot = self.robots.AddRobot(
+
+        session = ses.Session()
+        n_coils = session.GetConfig("n_coils", 1)
+
+        # Initialize the robots based on number of coils config
+        while len(self.robots.robots_by_id) < n_coils:
+            robot = self.robots.AddRobot(
                 tracker=self.tracker,
                 navigation=self.navigation,
                 icp=self.icp,
             )
+            if len(self.robots.robots_by_id) == 1:
+                self.robot = robot
         self.markers = MarkersControl(robot=self.robot)
         self.mep_visualizer = MEPVisualizer()
         Publisher.sendMessage("Add navigation context to interactive shell")
