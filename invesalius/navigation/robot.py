@@ -420,6 +420,22 @@ class Robot:
             robot_id=self.robot_id,
         )
 
+    def UpdateDisplacementToTarget(self, displacement):
+        wx.CallAfter(
+            Publisher.sendMessage,
+            "Neuronavigation to Robot: Update displacement to target",
+            displacement=displacement,
+            robot_id=self.robot_id,
+        )
+
+    def SendStatusCoilAtTarget(self, coil_at_target):
+        wx.CallAfter(
+            Publisher.sendMessage,
+            "From Neuronavigation: Coil at target",
+            state=coil_at_target,
+            robot_id=self.robot_id,
+        )
+
 
 class Robots(metaclass=Singleton):
     """
@@ -431,6 +447,10 @@ class Robots(metaclass=Singleton):
         self.robots_by_id = {}
         self.robots_by_coil = {}
         self.n_robots_created = 0
+        self.main_coil_name = None
+
+    def __bind_events(self):
+        pass
 
     def AddRobot(self, tracker, navigation, icp, coil_name=None):
         robot_id = self.n_robots_created
@@ -445,8 +465,14 @@ class Robots(metaclass=Singleton):
 
         return new_robot
 
-    def GetActiveRobot(self, main_coil_name):
-        return self.robots_by_coil.get(main_coil_name)
+    def SetMainCoilName(self, main_coil_name):
+        if main_coil_name in self.robots_by_coil:
+            self.main_coil_name = main_coil_name
+
+    def GetActiveRobot(self):
+        if self.main_coil_name:
+            return self.robots_by_coil.get(self.main_coil_name)
+        return None
 
     def GetRobot(self, robot_id):
         return self.robots_by_id.get(robot_id)

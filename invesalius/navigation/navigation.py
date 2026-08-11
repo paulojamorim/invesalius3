@@ -62,10 +62,12 @@ class NavigationHub(metaclass=Singleton):
         self.icp = IterativeClosestPoint()
         self.neuronavigation_api = NeuronavigationApi()
         self.pedal_connector = PedalConnector(self.neuronavigation_api, window)
-        self.navigation = Navigation(
-            pedal_connector=self.pedal_connector, neuronavigation_api=self.neuronavigation_api
-        )
         self.robots = Robots()
+        self.navigation = Navigation(
+            pedal_connector=self.pedal_connector,
+            neuronavigation_api=self.neuronavigation_api,
+            robots=self.robots,
+        )
 
         session = ses.Session()
         n_coils = session.GetConfig("navigation", {}).get("n_coils", 1)
@@ -346,9 +348,10 @@ class UpdateNavigationScene(threading.Thread):
 
 
 class Navigation(metaclass=Singleton):
-    def __init__(self, pedal_connector, neuronavigation_api):
+    def __init__(self, pedal_connector, neuronavigation_api, robots):
         self.pedal_connector = pedal_connector
         self.neuronavigation_api = neuronavigation_api
+        self.robots = robots
 
         self.target = None
         self.n_coils = 1
@@ -521,6 +524,8 @@ class Navigation(metaclass=Singleton):
         # Send the polydata of the main coil to the connection
         polydata = pu.LoadPolydata(self.coil_registrations[main_coil]["path"])
         self.neuronavigation_api.update_coil_mesh(polydata)
+
+        self.robots.SetMainCoil(main_coil)
 
     def SetReferenceMode(self, value):
         self.ref_mode_id = value
