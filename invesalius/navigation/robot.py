@@ -159,7 +159,6 @@ class Robot:
                 "Neuronavigation to Robot: Request config", robot_id=self.robot_id
             )
         else:
-            self.SetCoilName(None)
             Publisher.sendMessage("Update option main coil", done=True)
 
     def RegisterRobot(self):
@@ -449,8 +448,16 @@ class Robots(metaclass=Singleton):
         self.n_robots_created = 0
         self.main_coil_name = None
 
+        self.LoadConfig()
+
     def __bind_events(self):
         pass
+
+    def LoadConfig(self):
+        session = ses.Session()
+        state = session.GetConfig("navigation")
+        if state is not None:
+            self.main_coil_name = state.get("main_coil", None)
 
     def AddRobot(self, tracker, navigation, icp, coil_name=None):
         robot_id = self.n_robots_created
@@ -458,8 +465,10 @@ class Robots(metaclass=Singleton):
 
         new_robot = Robot(robot_id, tracker, navigation, icp, coil_name)
         self.robots_by_id[robot_id] = new_robot
-        if coil_name:
-            self.robots_by_coil[coil_name] = new_robot
+
+        active_coil_name = coil_name or new_robot.coil_name
+        if active_coil_name:
+            self.robots_by_coil[active_coil_name] = new_robot
 
         wx.CallAfter(Publisher.sendMessage, "Robot added", robot=new_robot)
 

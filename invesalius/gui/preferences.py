@@ -1151,7 +1151,7 @@ class ObjectTab(wx.Panel):
 
         # Robot 0
         self.robot_0_lbl = wx.StaticText(self, -1, _("Robot 0 is connected. Coil attached: "))
-        coil_name_0 = self.robot_0.GetCoilName() if self.robot_0.IsConnected() else ""
+        coil_name_0 = self.robot_0.GetCoilName() or ""
         self.choice_robot_0_coil = wx.ComboBox(
             self,
             -1,
@@ -1171,9 +1171,7 @@ class ObjectTab(wx.Panel):
 
         # Robot 1
         self.robot_1_lbl = wx.StaticText(self, -1, _("Robot 1 is connected. Coil attached: "))
-        coil_name_1 = (
-            self.robot_1.GetCoilName() if self.robot_1 and self.robot_1.IsConnected() else ""
-        )
+        coil_name_1 = self.robot_1.GetCoilName() if self.robot_1 else ""
         self.choice_robot_1_coil = wx.ComboBox(
             self,
             -1,
@@ -1226,9 +1224,10 @@ class ObjectTab(wx.Panel):
             if enabled:
                 self.choice_robot_0_coil.Show(True)
                 self.robot_0_lbl.SetLabel("Robot 0 is connected. Coil attached: ")
+                if self.robot_0 and self.robot_0.GetCoilName():
+                    self.choice_robot_0_coil.SetValue(self.robot_0.GetCoilName())
             else:
                 self.choice_robot_0_coil.Show(False)
-                self.choice_robot_0_coil.SetSelection(wx.NOT_FOUND)
                 self.robot_0_lbl.SetLabel("Robot 0 is not connected.")
         elif robot_id == 1:
             if not self.robot_1:
@@ -1237,9 +1236,10 @@ class ObjectTab(wx.Panel):
             if enabled:
                 self.choice_robot_1_coil.Show(True)
                 self.robot_1_lbl.SetLabel("Robot 1 is connected. Coil attached: ")
+                if self.robot_1 and self.robot_1.GetCoilName():
+                    self.choice_robot_1_coil.SetValue(self.robot_1.GetCoilName())
             else:
                 self.choice_robot_1_coil.Show(False)
-                self.choice_robot_1_coil.SetSelection(wx.NOT_FOUND)
                 self.robot_1_lbl.SetLabel("Robot 1 is not connected.")
         self.Layout()
 
