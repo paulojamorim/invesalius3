@@ -375,6 +375,11 @@ class Robot:
         Publisher.sendMessage("Neuronavigation to Robot: Unset target", robot_id=self.robot_id)
 
     def SetTarget(self, marker):
+        # Set robot objective to NONE when a new target is selected. This prevents the robot from
+        # automatically moving to the new target (which would be the case if robot objective was previously
+        # set to TRACK_TARGET). Preventing the automatic moving makes robot movement more explicit and predictable.
+        self.SetObjective(RobotObjective.NONE)
+
         coord = marker.position + marker.orientation
 
         # TODO: The coordinate systems of slice viewers and volume viewer should be unified, so that this coordinate
@@ -440,3 +445,12 @@ class Robots(metaclass=Singleton):
 
     def GetRobot(self, robot_id):
         return self.robots_by_id.get(robot_id)
+
+    def SetNoneObjectiveToAll(self):
+        for robot in self.robots_by_id.values():
+            if robot.objective != RobotObjective.NONE:
+                robot.SetObjective(RobotObjective.NONE)
+
+    def SendTargetToAll(self):
+        for robot in self.robots_by_id.values():
+            robot.SendTargetToRobot()

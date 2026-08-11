@@ -2172,7 +2172,7 @@ class ControlPanel(wx.Panel):
 
         self.navigation = nav_hub.navigation
         self.tracker = nav_hub.tracker
-        self.robot = None
+        self.robots = nav_hub.robots
         self.icp = nav_hub.icp
         self.image = nav_hub.image
         self.mep_visualizer = nav_hub.mep_visualizer
@@ -2492,7 +2492,7 @@ class ControlPanel(wx.Panel):
             self.navigation.StartNavigation(self.tracker, self.icp)
 
             # Ensure that the target is sent to robot when navigation starts.
-            self.robot.SendTargetToRobot()
+            self.robots.SendTargetToAll()
 
     def OnStartNavigationButton(self, evt, btn_nav):
         nav_id = btn_nav.GetValue()
@@ -2514,7 +2514,7 @@ class ControlPanel(wx.Panel):
         Publisher.sendMessage("Disable style", style=const.STATE_NAVIGATION)
 
         # Set robot objective to NONE when stopping navigation.
-        self.robot.SetObjective(RobotObjective.NONE)
+        self.robots.SetNoneObjectiveToAll()
 
         self.navigation.StopNavigation()
 
@@ -2740,9 +2740,6 @@ class ControlPanel(wx.Panel):
             self.UpdateToggleButton(self.show_motor_map_button)
 
     def OnRobotAdded(self, robot):
-        if self.robot is None:
-            self.robot = robot
-
         show_labels = len(self.robot_panels) > 0
         panel = RobotButtonsPanel(self.scroll_panel, robot, self.navigation, show_label=show_labels)
         self.robot_panels[robot.robot_id] = panel
@@ -2770,7 +2767,6 @@ class MarkersPanel(wx.Panel, ColumnSorterMixin):
 
         self.navigation = nav_hub.navigation
         self.markers = nav_hub.markers
-        self.robot = nav_hub.robot
         self.robots = nav_hub.robots
 
         if has_mTMS:
@@ -2856,11 +2852,7 @@ class MarkersPanel(wx.Panel, ColumnSorterMixin):
         sizer_delete.AddMany([(btn_delete_single, 1, wx.RIGHT), (btn_delete_all, 0, wx.LEFT)])
 
         # Combobox for choosing the main coil (ie. the coil which to track with pointer and to use for marker creation)
-        robot_coil = self.robot.GetCoilName()
-        init_choices = [
-            f"{coil} (robot)" if coil == robot_coil else coil
-            for coil in self.navigation.coil_registrations
-        ]
+        init_choices = self.GetMainCoilComboboxChoices()
 
         self.select_main_coil = select_main_coil = wx.ComboBox(
             self,
@@ -3727,31 +3719,31 @@ class MarkersPanel(wx.Panel, ColumnSorterMixin):
                 wx.MessageBox(str(e), _("InVesalius 3"), wx.OK | wx.ICON_ERROR)
         grid_dlg.Destroy()
 
+    def GetMainCoilComboboxChoices(self):
+        coil_to_robots = {}
+        if hasattr(self, "robots") and self.robots is not None:
+            for r_id, r in self.robots.robots_by_id.items():
+                r_coil = r.GetCoilName()
+                if r_coil:
+                    if r_coil not in coil_to_robots:
+                        coil_to_robots[r_coil] = []
+                    coil_to_robots[r_coil].append(str(r_id))
+
+        choices = []
+        for coil in self.navigation.coil_registrations:
+            if coil in coil_to_robots:
+                r_str = ", ".join(coil_to_robots[coil])
+                choices.append(f"{coil} (robot {r_str})")
+            else:
+                choices.append(coil)
+        return choices
+
     def UpdateMainCoilCombobox(self, done):
         select_main_coil = self.select_main_coil
         if done:
             select_main_coil.Clear()
 
-            coil_to_robots = {}
-            if hasattr(self, "robots") and self.robots is not None:
-                for r_id, r in self.robots.robots_by_id.items():
-                    r_coil = r.GetCoilName()
-                    if r_coil:
-                        if r_coil not in coil_to_robots:
-                            coil_to_robots[r_coil] = []
-                        coil_to_robots[r_coil].append(str(r_id))
-            elif hasattr(self, "robot") and self.robot is not None:
-                r_coil = self.robot.GetCoilName()
-                if r_coil:
-                    coil_to_robots[r_coil] = ["0"]
-
-            choices = []
-            for coil in self.navigation.coil_registrations:
-                if coil in coil_to_robots:
-                    r_str = ", ".join(coil_to_robots[coil])
-                    choices.append(f"{coil} (robot {r_str})")
-                else:
-                    choices.append(coil)
+            choices = self.GetMainCoilComboboxChoices()
 
             select_main_coil.AppendItems(choices)
             try:
