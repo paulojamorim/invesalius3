@@ -67,7 +67,6 @@ class Robot:
         success = self.LoadConfig()
         if success:
             self.ConnectToRobot()
-            self.InitializeRobot()
 
         self.__bind_events()
 
@@ -158,6 +157,10 @@ class Robot:
             Publisher.sendMessage(
                 "Neuronavigation to Robot: Request config", robot_id=self.robot_id
             )
+
+            # Send matrix and coil index once connected
+            if self.matrix_tracker_to_robot is not None:
+                self.InitializeRobot()
         else:
             Publisher.sendMessage("Update option main coil", done=True)
 
