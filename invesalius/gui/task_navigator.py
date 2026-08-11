@@ -3772,6 +3772,8 @@ class MarkersPanel(wx.Panel, ColumnSorterMixin):
         elif main_coil.endswith(" (robot)"):
             main_coil = main_coil[:-8]
         self.navigation.SetMainCoil(main_coil)
+        self.robots.SetMainCoil(main_coil)
+
         ctrl.SetSelection(choice)
         Publisher.sendMessage("Update robot buttons")
 
