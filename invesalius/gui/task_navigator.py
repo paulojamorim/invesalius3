@@ -2419,23 +2419,6 @@ class ControlPanel(wx.Panel):
 
         Publisher.subscribe(self.OnCoilSelectionDone, "Coil selection done")
 
-    def OnRobotAdded(self, robot):
-        if self.robot is None:
-            self.robot = robot
-
-        show_labels = len(self.robot_panels) > 0
-        panel = RobotButtonsPanel(self.scroll_panel, robot, self.navigation, show_label=show_labels)
-        self.robot_panels[robot.robot_id] = panel
-        self.robots_sizer.Add(panel, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.BOTTOM, 10)
-
-        if show_labels:
-            for p in self.robot_panels.values():
-                p.ShowLabel(True)
-
-        self.scroll_panel.Layout()
-        self.Layout()
-        self.Refresh()
-
         Publisher.subscribe(self.PressShowCoilButton, "Press show-coil button")
         Publisher.subscribe(self.EnableShowCoilButton, "Enable show-coil button")
 
@@ -2755,6 +2738,23 @@ class ControlPanel(wx.Panel):
         pressed = self.show_motor_map_button.GetValue()
         if self.mep_visualizer.DisplayMotorMap(show=pressed):
             self.UpdateToggleButton(self.show_motor_map_button)
+
+    def OnRobotAdded(self, robot):
+        if self.robot is None:
+            self.robot = robot
+
+        show_labels = len(self.robot_panels) > 0
+        panel = RobotButtonsPanel(self.scroll_panel, robot, self.navigation, show_label=show_labels)
+        self.robot_panels[robot.robot_id] = panel
+        self.robots_sizer.Add(panel, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.BOTTOM, 10)
+
+        if show_labels:
+            for p in self.robot_panels.values():
+                p.ShowLabel(True)
+
+        self.scroll_panel.Layout()
+        self.Layout()
+        self.Refresh()
 
 
 class MarkersPanel(wx.Panel, ColumnSorterMixin):
