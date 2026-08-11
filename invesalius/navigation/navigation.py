@@ -68,7 +68,7 @@ class NavigationHub(metaclass=Singleton):
         self.robots = Robots()
 
         session = ses.Session()
-        n_coils = session.GetConfig("n_coils", 1)
+        n_coils = session.GetConfig("navigation", {}).get("n_coils", 1)
 
         # Initialize the robots based on number of coils config
         while len(self.robots.robots_by_id) < n_coils:
