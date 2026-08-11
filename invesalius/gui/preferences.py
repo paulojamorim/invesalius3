@@ -1151,10 +1151,11 @@ class ObjectTab(wx.Panel):
 
         # Robot 0
         self.robot_0_lbl = wx.StaticText(self, -1, _("Robot 0 is connected. Coil attached: "))
+        coil_name_0 = self.robot_0.GetCoilName() if self.robot_0.IsConnected() else ""
         self.choice_robot_0_coil = wx.ComboBox(
             self,
             -1,
-            f"{self.robot_0.GetCoilName() or ''}",
+            f"{coil_name_0}",
             size=wx.Size(90, 23),
             choices=list(self.navigation.coil_registrations),
             style=wx.CB_DROPDOWN | wx.CB_READONLY,
@@ -1170,7 +1171,9 @@ class ObjectTab(wx.Panel):
 
         # Robot 1
         self.robot_1_lbl = wx.StaticText(self, -1, _("Robot 1 is connected. Coil attached: "))
-        coil_name_1 = self.robot_1.GetCoilName() if self.robot_1 else ""
+        coil_name_1 = (
+            self.robot_1.GetCoilName() if self.robot_1 and self.robot_1.IsConnected() else ""
+        )
         self.choice_robot_1_coil = wx.ComboBox(
             self,
             -1,
@@ -1525,7 +1528,7 @@ class ObjectTab(wx.Panel):
         # Update robot coil combobox
         if hasattr(self, "choice_robot_0_coil") and self.choice_robot_0_coil is not None:
             self.choice_robot_0_coil.Set(list(navigation.coil_registrations))
-            coil_0 = self.robot_0.GetCoilName()
+            coil_0 = self.robot_0.GetCoilName() if self.robot_0.IsConnected() else None
             if coil_0 and coil_0 in navigation.coil_registrations:
                 self.choice_robot_0_coil.SetStringSelection(coil_0)
             else:
@@ -1533,7 +1536,9 @@ class ObjectTab(wx.Panel):
 
         if hasattr(self, "choice_robot_1_coil") and self.choice_robot_1_coil is not None:
             self.choice_robot_1_coil.Set(list(navigation.coil_registrations))
-            coil_1 = self.robot_1.GetCoilName() if self.robot_1 else None
+            coil_1 = (
+                self.robot_1.GetCoilName() if self.robot_1 and self.robot_1.IsConnected() else None
+            )
             if coil_1 and coil_1 in navigation.coil_registrations:
                 self.choice_robot_1_coil.SetStringSelection(coil_1)
             else:

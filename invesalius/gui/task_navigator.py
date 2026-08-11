@@ -3723,6 +3723,8 @@ class MarkersPanel(wx.Panel, ColumnSorterMixin):
         coil_to_robots = {}
         if hasattr(self, "robots") and self.robots is not None:
             for r_id, r in self.robots.robots_by_id.items():
+                if not r.IsConnected():
+                    continue
                 r_coil = r.GetCoilName()
                 if r_coil:
                     if r_coil not in coil_to_robots:
