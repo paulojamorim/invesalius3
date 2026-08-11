@@ -171,6 +171,11 @@ class Robot:
         if not self.tracker.tracker_connected:
             wx.MessageBox(_("Tracker is not connect."), _("InVesalius 3"))
             return
+
+        if not self.coil_name:
+            wx.MessageBox(_("Attach a coil to the robot before registering it."), _("InVesalius 3"))
+            return
+
         self.robot_coregistration_dialog = dlg.RobotCoregistrationDialog(
             robot=self, tracker=self.tracker
         )
