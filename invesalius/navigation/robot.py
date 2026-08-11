@@ -465,6 +465,20 @@ class Robots(metaclass=Singleton):
 
         return new_robot
 
+    def AssignCoilToRobot(self, robot_id, coil_name):
+        robot = self.GetRobot(robot_id)
+        if not robot:
+            return
+
+        old_coil_name = robot.coil_name
+        if old_coil_name and old_coil_name in self.robots_by_coil:
+            del self.robots_by_coil[old_coil_name]
+
+        if coil_name:
+            self.robots_by_coil[coil_name] = robot
+
+        robot.SetCoilName(coil_name)
+
     def SetMainCoil(self, main_coil_name):
         if main_coil_name in self.robots_by_coil:
             self.main_coil_name = main_coil_name

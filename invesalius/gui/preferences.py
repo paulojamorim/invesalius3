@@ -1247,7 +1247,7 @@ class ObjectTab(wx.Panel):
         if not robot:
             return
         robot_coil_name = event.GetEventObject().GetStringSelection()
-        robot.SetCoilName(robot_coil_name)
+        self.robots.AssignCoilToRobot(robot.robot_id, robot_coil_name)
         Publisher.sendMessage("Coil selection done", done=True)
         Publisher.sendMessage("Update robot buttons")
 
@@ -1451,7 +1451,7 @@ class ObjectTab(wx.Panel):
         if self.navigation.n_coils == 1:  # Tell the robot the coil name
             coil_name = next(iter(self.navigation.coil_registrations))
             if hasattr(self, "robot_0"):
-                self.robot_0.SetCoilName(coil_name)
+                self.robots.AssignCoilToRobot(self.robot_0.robot_id, coil_name)
 
         Publisher.sendMessage("Coil selection done", done=True)
         Publisher.sendMessage("Update status text in GUI", label=_("Ready"))
