@@ -1889,8 +1889,8 @@ class RobotButtonsPanel(wx.Panel):
 
         # State variables (maintained via Publisher subscriptions)
         self.nav_status = False
-        self.target_selected = False
-        self.target_mode = False
+        self.target_selected = self.robot.target is not None
+        self.target_mode = self.robot.target is not None
 
         # Constants
         ICON_SIZE = (48, 48)
